@@ -237,6 +237,7 @@ class Model(nn.Module, abc.ABC):
 
     def save(self, save_dir: Union[str, pathlib.Path]):
         """Saves the model to the given directory."""
+        pathlib.Path(save_dir).mkdir(parents=True, exist_ok=True)
         torch.save(self.state_dict(), pathlib.Path(save_dir) / self._MODEL_FNAME)
 
     def load(self, load_dir: Union[str, pathlib.Path]):
