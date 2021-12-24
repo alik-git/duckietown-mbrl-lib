@@ -89,6 +89,10 @@ def _legacy_make_env(
             env = mbrl.env.mujoco_envs.HumanoidTruncatedObsEnv()
             term_fn = mbrl.env.termination_fns.ant
             reward_fn = None
+        elif cfg.overrides.env == "duckietown_gym_env":
+            env = mbrl.env.DuckietownEnv()
+            term_fn = mbrl.env.termination_fns.no_termination
+            reward_fn = None 
         else:
             raise ValueError("Invalid environment string.")
         env = gym.wrappers.TimeLimit(
