@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
+from PIL import Image
 
 import numpy as np
 import torch
@@ -324,6 +325,38 @@ class PlaNetModel(Model):
         next_belief = self.belief_model(
             current_latent_state, current_action, current_belief
         )
+        
+        # # Investigate what obsrvation really is:
+        
+        # # Isolate smaple obseration
+        # sample_obs = obs[0]
+        # print(f"{sample_obs.size()=}")
+        # print(f"{sample_obs=}")
+        # print("hello")
+        
+        
+
+        
+        # # below are just some possible transforms you can do to the image to make it compatible with showing as an image, cause rn its a numpy array or pytorch tensor
+        # # just leaving them here for now in case it is useful 
+        # # # np.array(Image.fromarray((img * 255).astype(np.uint8)).resize((input_size, input_size)).convert('RGB'))
+        # # random_array = np.random.random_sample(content_array.shape) * 255
+        # # random_array = random_array.astype(np.uint8)
+        # # random_image = Image.fromarray(random_array)
+        
+        # # convert to image tensor by detaching and converting to numpy and also you need to make it on cpu and also you need to have it be the correct datastype, and multiply it by 255 cause its normalized 
+        # image_tensor = (sample_obs*500).cpu().detach().numpy().astype(np.uint8)
+        
+        # # random print statements cause sometimes it would bug out if I added lines  
+        # # print("woow")
+        # # print("test")
+        # pillow_image = Image.fromarray(image_tensor)
+        # # print("made object")
+        
+        # # im.save('screen.png')
+        # # to show the image 
+        # pillow_image.show()
+        
         obs_encoding = self.encoder.forward(obs)
         posterior_dist_params = self.posterior_transition_model(
             torch.cat([next_belief, obs_encoding], dim=1)
