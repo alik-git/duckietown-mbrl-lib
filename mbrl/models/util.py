@@ -153,7 +153,8 @@ class Conv2dEncoder(nn.Module):
         conv = self.convs[0](obs)
         for i in range(1, len(self.convs)):
             conv = self.convs[i](conv)
-        h = conv.view(conv.size(0), -1)
+        # h = conv.view(conv.size(0), -1)
+        h = conv.reshape(conv.size(0), -1)
         return self.fc(h)
 
 
