@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
-from PIL import Image
 
 import numpy as np
 import torch
@@ -16,6 +15,9 @@ from mbrl.types import TensorType, TransitionBatch
 
 from .model import Model
 from .util import Conv2dDecoder, Conv2dEncoder, to_tensor
+
+from PIL import Image
+import time
 
 
 def dreamer_init(m: nn.Module):
@@ -326,36 +328,63 @@ class PlaNetModel(Model):
             current_latent_state, current_action, current_belief
         )
         
-        # # Investigate what obsrvation really is:
+        in_duckietown = False
+        if (np.asarray(obs.size())[1:] == [480,640,3]).all():
+            in_duckietown = True
         
-        # # Isolate smaple obseration
-        # sample_obs = obs[0]
-        # print(f"{sample_obs.size()=}")
-        # print(f"{sample_obs=}")
-        # print("hello")
+        if in_duckietown:
+            ##############################
+            ### Duckietown PreProcessing:
+            ##############################
+            
+            # This makes puts the channels first, which is what the network expects
+            # i.e [batch_size, height, width, channels] -> [batch_size, channels, height, width]
+            obs = obs.permute((0,3,1,2))
+            
+            # this resizes the images from 640x480 to 64x64
+            obs = F.interpolate(obs, [64,64])
+        
+        
+        ##############################
+        ### Debugging Stuff:
+        ##############################
+        
+        # Investigate what obsrvation really is:
+        
+        # Isolate smaple obseration
+        
+        sample_obs = obs[0]
+        print(f"{sample_obs.size()=}")
+        sample_obs = sample_obs.permute((1,2,0))
+        print(f"{sample_obs.size()=}")
+        print(f"{sample_obs=}")
+        print("hello")
+        
         
         
 
+        # below are just some possible transforms you can do to the image to make it compatible with showing as an image, cause rn its a numpy array or pytorch tensor
+        # just leaving them here for now in case it is useful 
+        # # np.array(Image.fromarray((img * 255).astype(np.uint8)).resize((input_size, input_size)).convert('RGB'))
+        # random_array = np.random.random_sample(content_array.shape) * 255
+        # random_array = random_array.astype(np.uint8)
+        # random_image = Image.fromarray(random_array)
         
-        # # below are just some possible transforms you can do to the image to make it compatible with showing as an image, cause rn its a numpy array or pytorch tensor
-        # # just leaving them here for now in case it is useful 
-        # # # np.array(Image.fromarray((img * 255).astype(np.uint8)).resize((input_size, input_size)).convert('RGB'))
-        # # random_array = np.random.random_sample(content_array.shape) * 255
-        # # random_array = random_array.astype(np.uint8)
-        # # random_image = Image.fromarray(random_array)
+        # convert to image tensor by detaching and converting to numpy and also you need to make it on cpu and also you need to have it be the correct datastype, and multiply it by 255 cause its normalized 
+        scale_factor = 50
+        image_tensor = (sample_obs*scale_factor).cpu().detach().numpy().astype(np.uint8)
         
-        # # convert to image tensor by detaching and converting to numpy and also you need to make it on cpu and also you need to have it be the correct datastype, and multiply it by 255 cause its normalized 
-        # image_tensor = (sample_obs*500).cpu().detach().numpy().astype(np.uint8)
+        # random print statements cause sometimes it would bug out if I added lines  
+        # print("woow")
+        # print("test")
+        pillow_image = Image.fromarray(image_tensor)
+        # print("made object")
         
-        # # random print statements cause sometimes it would bug out if I added lines  
-        # # print("woow")
-        # # print("test")
-        # pillow_image = Image.fromarray(image_tensor)
-        # # print("made object")
+        # im.save('screen.png')
+        # to show the image 
+        pillow_image.show()
         
-        # # im.save('screen.png')
-        # # to show the image 
-        # pillow_image.show()
+        # time.sleep(6000)
         
         obs_encoding = self.encoder.forward(obs)
         posterior_dist_params = self.posterior_transition_model(
