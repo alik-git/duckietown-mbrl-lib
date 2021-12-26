@@ -327,7 +327,7 @@ class PlaNetModel(Model):
         next_belief = self.belief_model(
             current_latent_state, current_action, current_belief
         )
-        
+
         in_duckietown = False
         if (np.asarray(obs.size())[1:] == [480,640,3]).all():
             in_duckietown = True
