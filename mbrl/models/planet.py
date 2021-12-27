@@ -216,7 +216,6 @@ class PlaNetModel(Model):
     ):
         super().__init__(device)
         self.obs_shape = obs_shape
-        # self.obs_shape = [64,64,3]
         self.action_size = action_size
         self.latent_state_size = latent_state_size
         self.belief_size = belief_size
@@ -439,9 +438,6 @@ class PlaNetModel(Model):
             if self.in_duckietown:
                 decoder_output = decoder_output.permute((0,2,3,1))
             pred_next_obs[:, t_step] = decoder_output
-            # pred_next_obs[:, t_step] = self._forward_decoder(
-            #     posterior_sample, next_belief
-            # )
             pred_rewards[:, t_step] = self.reward_model(
                 torch.cat([next_belief, posterior_sample], dim=1)
             ).squeeze()
