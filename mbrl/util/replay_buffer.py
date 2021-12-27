@@ -382,6 +382,10 @@ class SequenceTransitionSampler(TransitionIterator):
         if self._current_batch >= self._batches_per_loop:
             raise StopIteration
         self._current_batch += 1
+
+        if self.num_stored == 0:
+            raise StopIteration
+
         indices = self._rng.choice(self.num_stored, size=self.batch_size, replace=True)
         return self[indices]
 
@@ -437,6 +441,8 @@ class ReplayBuffer:
     ):
         self.cur_idx = 0
         self.capacity = capacity
+        print(f"{self.capacity=}")
+        
         self.num_stored = 0
 
         self.trajectory_indices: Optional[List[Tuple[int, int]]] = None
