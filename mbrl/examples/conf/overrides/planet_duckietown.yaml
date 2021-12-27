@@ -13,6 +13,7 @@ cem_elite_ratio: 0.1
 cem_population_size: 10
 cem_alpha: 0.0
 cem_clipped_normal: true
+action_noise_std: 0.3
 
 # Model overrides
 num_grad_updates: 20
