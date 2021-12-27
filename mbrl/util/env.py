@@ -90,7 +90,7 @@ def _legacy_make_env(
             term_fn = mbrl.env.termination_fns.ant
             reward_fn = None
         elif cfg.overrides.env == "duckietown_gym_env":
-            env = mbrl.env.DuckietownEnv()
+            env = mbrl.env.DuckietownEnv(domain_rand=False, camera_width=64, camera_height=64)
             term_fn = mbrl.env.termination_fns.no_termination
             reward_fn = None 
         else:
