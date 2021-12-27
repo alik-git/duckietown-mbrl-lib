@@ -225,6 +225,7 @@ class PlaNetModel(Model):
         self.kl_scale = kl_scale
         self.grad_clip_norm = grad_clip_norm
         self.rng = torch.Generator(device=self.device) if rng is None else rng
+        self.in_duckietown = False
 
         # Computes ht = f(ht-1, st-1, at-1)
         #   st-1, at-1 --> Linear --> ht-1 --> RNN --> ht
@@ -309,6 +310,32 @@ class PlaNetModel(Model):
         )
         return mean + std * sample
 
+    def get_and_view_obs(self,sample_obs):
+        """Allows you to view a sample observation for debugging purposes
+        Args:
+            sample_obs (Tensor): An observation to convert and view
+        """        
+
+        # obs are normally [3xHxW], but to view them they need to be [HxWx3]
+        # print(f"{sample_obs.size()=}")
+        sample_obs = sample_obs.permute((1,2,0))
+        # print(f"{sample_obs.size()=}")
+
+        # uncomment line below to directly view observation Tensor
+        # print(f"{sample_obs=}")
+        
+        # convert to image tensor by detaching and converting to numpy and 
+        # also you need to make it on cpu and also you need to have it be the correct datastype, 
+        # and multiply it by 255 cause its normalized 
+        scale_factor = 255
+        image_tensor = (sample_obs*scale_factor).cpu().detach().numpy().astype(np.uint8)
+        
+        # convert to image
+        pillow_image = Image.fromarray(image_tensor)
+        
+        # im.save('screen.png')
+        pillow_image.show()
+        
     # Forwards the prior and posterior transition models
     def _forward_transition_models(
         self,
@@ -329,12 +356,12 @@ class PlaNetModel(Model):
             current_latent_state, current_action, current_belief
         )
 
-        in_duckietown = False
-        # if (np.asarray(obs.size())[1:] == [480,640,3]).all(): # old version
+        # hacky check to see if we are using the duckietown environment
+        # I just see if the obs shape ends in 3, for the other envs it does not 
         if np.asarray(obs.size())[-1] == 3:
-            in_duckietown = True
+            self.in_duckietown = True
         
-        if in_duckietown:
+        if self.in_duckietown:
             ##############################
             ### Duckietown PreProcessing:
             ##############################
@@ -343,50 +370,13 @@ class PlaNetModel(Model):
             # i.e [batch_size, height, width, channels] -> [batch_size, channels, height, width]
             obs = obs.permute((0,3,1,2))
             
+            # incase you need/want to resize
             # this resizes the images from 640x480 to 64x64
             # obs = F.interpolate(obs, [64,64])
             pass
         
-        
-        # ##############################
-        # ### Debugging Stuff:
-        # ##############################
-        
-        # # Investigate what obsrvation really is:
-        
-        # # Isolate smaple obseration
-        
-        # sample_obs = obs[0]
-        # print(f"{sample_obs.size()=}")
-        # sample_obs = sample_obs.permute((1,2,0))
-        # print(f"{sample_obs.size()=}")
-        # print(f"{sample_obs=}")
-        # print("hello")
-        
-       
-       
-        # # below are just some possible transforms you can do to the image to make it compatible with showing as an image, cause rn its a numpy array or pytorch tensor
-        # # just leaving them here for now in case it is useful 
-        # # # np.array(Image.fromarray((img * 255).astype(np.uint8)).resize((input_size, input_size)).convert('RGB'))
-        # # random_array = np.random.random_sample(content_array.shape) * 255
-        # # random_array = random_array.astype(np.uint8)
-        # # random_image = Image.fromarray(random_array)
-        
-        # # convert to image tensor by detaching and converting to numpy and also you need to make it on cpu and also you need to have it be the correct datastype, and multiply it by 255 cause its normalized 
-        # scale_factor = 50
-        # image_tensor = (sample_obs*scale_factor).cpu().detach().numpy().astype(np.uint8)
-        
-        # # random print statements cause sometimes it would bug out if I added lines  
-        # # print("woow")
-        # # print("test")
-        # pillow_image = Image.fromarray(image_tensor)
-        # # print("made object")
-        
-        # # im.save('screen.png')
-        # # to show the image 
-        # pillow_image.show()
-        
-        # # time.sleep(6000)
+        # if you want to debug / view an observation
+        # self.get_and_view_obs(obs[0])
         
         obs_encoding = self.encoder.forward(obs)
         posterior_dist_params = self.posterior_transition_model(
@@ -446,7 +436,8 @@ class PlaNetModel(Model):
                 current_belief,
             )
             decoder_output = self._forward_decoder(posterior_sample, next_belief)
-            decoder_output = decoder_output.permute((0,2,3,1))
+            if self.in_duckietown:
+                decoder_output = decoder_output.permute((0,2,3,1))
             pred_next_obs[:, t_step] = decoder_output
             # pred_next_obs[:, t_step] = self._forward_decoder(
             #     posterior_sample, next_belief
