@@ -9,15 +9,15 @@
 
 clean up what we keep from precious
 
-Tutorial on what files does what
+Tutorial on what files does what (Max)
 
-wanb tuto
+wanb tuto(Brahim) https://wandb.ai/site?gclid=CjwKCAiA-9uNBhBTEiwAN3IlNAIsScYR0DRScX0kE7xE9IrN75iFZfXxZ3y0u1lakDb5W0Wg03TUJhoCwqoQAvD_BwE
 
-Cuda
+Cuda(ALI)
 
-hydra
+hydra(Idont if we have to import or if automatic and what version)(Max)
 
-MBRL key attributes overview
+MBRL key attributes overview(Brahim)
 
 bashrc thingy add ali
 
