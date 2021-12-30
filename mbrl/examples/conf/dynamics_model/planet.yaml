@@ -21,4 +21,6 @@ device: ${device}
 min_std: 0.1
 free_nats: 3.0
 kl_scale: 1.0
-grad_clip_norm: 1000.0
+# grad_clip_norm: 1000.0
+# To use for duckietown_gym_env
+grad_clip_norm: 10.0
