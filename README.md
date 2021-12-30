@@ -9,18 +9,48 @@ We recommend using [anaconda](https://docs.anaconda.com/anaconda/install/linux/)
 
     conda create --name RlDuckie python=3.8
     conda activate RlDuckie
-## dependencies
-*** do we want to install everything here?
 ## Gym-Duckietown
-clone Gym-Duckietown and navigate to the master branch
+You will need to do the [duckietown laptop](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html) setup to use the gym-duckietown
+
+Then clone Gym-Duckietown and navigate to the master branch
 
     git clone https://github.com/duckietown/gym-duckietown.git
     cd gym-duckietown 
     git checkout master
     pip3 install -e .
     pip install torch
-Set path in path env
-*** todo
+To import from duckietown gym into mbrl, you will need to add a path (.pth) file to your python envs installation.
+A simple way to do so is to run the python command in youre conda virtual environement and print the sys.path files path.
+
+    $ python
+    Python 3.8.12 (default, Oct 12 2021, 13:49:34) 
+    [GCC 7.5.0] :: Anaconda, Inc. on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import sys
+    >>> for p in sys.path:
+    ...     print(p)
+    ... 
+    
+Which will output something similar to this:
+
+    ~/repos/ali_mbrl/mbrl-lib
+    ~/repos/duck_gym_master/gym-duckietown
+    ~/anaconda3/envs/mb/lib/python38.zip
+    ~/anaconda3/envs/mb/lib/python3.8
+    ~/anaconda3/envs/mb/lib/python3.8/lib-dynload
+    ~/.local/lib/python3.8/site-packages
+    ~/anaconda3/envs/mb/lib/python3.8/site-packages
+    >>> 
+
+Then go to ~/anaconda3/envs/mb/lib/python3.8/site-packages
+
+There you will find some .pth files, make a new one called duckietowngym.pth (name is not important, you can call it whatever) and make this the content: 
+
+import sys
+sys.path.append('actual Path To you're gym-duckietown')
+
+Now just restart the terminal and you should be able to import gym duckietown stuff in your python venv
+
 ## MBRL-Lib
 
 ``mbrl`` is a toolbox for facilitating development of 
@@ -32,18 +62,8 @@ See also their companion [paper](https://arxiv.org/abs/2104.10159).
 
 ## Getting Started
 
-### Installation
-
-#### Standard Installation
-
-``mbrl`` requires Python 3.7+ library and [PyTorch (>= 1.7)](https://pytorch.org). 
-To install the latest stable version, run
-
-    pip install mbrl
-
 #### Developer installation
-If you are interested in modifying the library, clone the repository and set up 
-a development environment as follows
+Clone the repository and set up a development environment as follows
 
     git clone https://github.com/facebookresearch/mbrl-lib.git
     pip install -e ".[dev]"
@@ -61,7 +81,7 @@ on how to write the PETS algorithm
 using our toolbox, and running it on a continuous version of the cartpole 
 environment.
 
-## Provided algorithm implementations
+## Provided algorithm implementations(*** add explaination on what does what)
 MBRL-Lib provides implementations of popular MBRL algorithms 
 as examples of how to use this library. You can find them in the 
 [mbrl/algorithms](https://github.com/facebookresearch/mbrl-lib/tree/main/mbrl/algorithms) folder. Currently, we have implemented
@@ -113,7 +133,7 @@ To use mujoco you MAY need to install these packages
 For mujoco you will need to add these path to youre LD_LIBRARY_PATH, we suggest you add it to youre .bashrc files in the hidden files on youre home, simply paste the line at the end of the file.
 You can also run the lines every time you enter a new terminal
 
-    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/kuwajerw/.mujoco/mujoco210/bin"
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:<change this for youre path to .mujoco>/.mujoco/mujoco210/bin"
     export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/lib/nvidia"
 
 #### dm_control
@@ -152,6 +172,42 @@ To specify the environment to use for `main.py`, there are two possibilities:
       - `pybullet-gym`: `"pybulletgym___<env-name>"`, where `env-name` is the name of the environment in pybullet gym (e.g., "HopperPyBulletEnv-v0")
 ## Added Visualization
 wanb?
+## Debugger
+
+For those using VSCode, here is a tutorial on how to set up a debugger.
+
+click on Run And Debug(Ctrl+shift+D)
+
+click on create a launch.json file
+
+Delete all there is in the file and paste this instead(change the path to youre own path)
+
+    {
+       // Use IntelliSense to learn about possible attributes.
+       // Hover to view descriptions of existing attributes.
+       // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+       "version": "0.2.0",
+       "configurations": [
+
+           {
+               "name": "Python: Current File",
+               "type": "python",
+               "request": "launch",
+               "python": "/home/kuwajerw/anaconda3/envs/mbgym/bin/python",
+               // "program": "${file}",
+               "module": "mbrl.examples.main",
+               "args": [
+                   "algorithm=planet",
+                   "dynamics_model=planet",
+                   "overrides=planet_duckietown"
+               ],
+               "console": "integratedTerminal"
+           }
+       ]
+    }
+
+
+Select Python, then Python File
 ## Visualization and diagnostics tools
 Our library also contains a set of 
 [diagnostics](https://github.com/facebookresearch/mbrl-lib/tree/main/mbrl/diagnostics) tools, meant to facilitate 
