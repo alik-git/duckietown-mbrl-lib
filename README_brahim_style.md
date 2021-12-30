@@ -16,6 +16,8 @@ Tutorial on what files does what (Max)
 
 `pip install wandb --upgrade`
 
+Then start using the wandb module through their [tutorial](https://docs.wandb.ai/quickstart)
+
 ## Installation of CUDA
 
 ## Installation of Hydra
