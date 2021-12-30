@@ -4,27 +4,21 @@
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 # Reinforcement Learning in Duckietown using MBRL
-## dependencies
-mujoco
-dm-controls
-
- 
-
-## Gym-Duckietown
-Todo: add reference to repo of gym duckietown maybe not
-
-    pip install pytz
-    pip install docker
-    pip install docker-compose
-    pip install texttable
-    pip install numpy
-    pip install torch
-    
-## Previous MBRL
+## Virtual environement setup
 We recommend using anaconda's virtual environements and the python version 3.8.
 
     conda create --name RlDuckie python=3.8
     conda activate RlDuckie
+## dependencies
+*** do we want to install everything here?
+## Gym-Duckietown
+clone Gym-Duckietown and navigate to the master branch
+
+    git clone https://github.com/duckietown/gym-duckietown.git
+    cd gym-duckietown 
+    git checkout master
+    pip3 install -e .
+    pip install torch
       
 ## MBRL-Lib
 
@@ -33,7 +27,7 @@ Model-Based Reinforcement Learning algorithms. It provides easily interchangeabl
 modeling and planning components, and a set of utility functions that allow writing
 model-based RL algorithms with only a few lines of code. 
 
-See also our companion [paper](https://arxiv.org/abs/2104.10159). 
+See also their companion [paper](https://arxiv.org/abs/2104.10159). 
 
 ## Getting Started
 
@@ -52,6 +46,8 @@ a development environment as follows
 
     git clone https://github.com/facebookresearch/mbrl-lib.git
     pip install -e ".[dev]"
+    pip install hydra   ***Might not be necessairy
+
 
 And test it by running the following from the root folder of the repository
 
@@ -105,8 +101,23 @@ all the available options, take a look at the provided
 [configuration files](https://github.com/facebookresearch/mbrl-lib/tree/main/mbrl/examples/conf). 
 
 ## Supported environments
-### Mujoco instalation
-Do the install MuJoCo paragraph and "Install and use mujoco-py"  [`mujoco-py`](https://github.com/openai/mujoco-py)
+### Dependencies
+#### mujoco
+Do the install "MuJoCo" and "Install and use mujoco-py" paragraphs from [`mujoco-py`](https://github.com/openai/mujoco-py)
+
+To use mujoco you MAY need to install these packages
+   
+    sudo apt install curl git libgl1-mesa-dev libgl1-mesa-glx libglew-dev \
+    libosmesa6-dev software-properties-common net-tools unzip vim \
+    virtualenv wget xpra xserver-xorg-dev libglfw3-dev patchelf
+#### dm_control
+
+    pip install dm_control
+
+#### openAI Gym
+pybullet-gym?
+    pip install gym
+    
 ### MBRL
 Our example configurations are largely based on [Mujoco](https://mujoco.org/), but
 our library components (and algorithms) are compatible with any environment that follows
@@ -133,7 +144,8 @@ To specify the environment to use for `main.py`, there are two possibilities:
       - `mujoco-gym`: `"gym___<env-name>"`, where `env-name` is the name of the environment in gym (e.g., "HalfCheetah-v2").
       - `dm_control`: `"dmcontrol___<domain>--<task>`, where domain/task are defined as in DMControl (e.g., "cheetah--run").
       - `pybullet-gym`: `"pybulletgym___<env-name>"`, where `env-name` is the name of the environment in pybullet gym (e.g., "HopperPyBulletEnv-v0")
-
+## Added Visualization
+wanb?
 ## Visualization and diagnostics tools
 Our library also contains a set of 
 [diagnostics](https://github.com/facebookresearch/mbrl-lib/tree/main/mbrl/diagnostics) tools, meant to facilitate 
