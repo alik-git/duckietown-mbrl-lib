@@ -21,10 +21,6 @@ Then start using the wandb module through their [tutorial](https://docs.wandb.ai
 
 ## Installation of CUDA
 
-## Overview of MBRL key attributes
-
-A diagnostic set of parameters have been set up to help you debugging your model more quickly, you can find it through the following [link](https://github.com/facebookresearch/mbrl-lib/blob/main/README.md#visualization-and-diagnostics-tools)
-
 bashrc thingy add ali
 
 ## Virtual environement setup
@@ -86,6 +82,10 @@ And test it by running the following from the root folder of the repository
 
     python -m pytest tests/core
     python -m pytest tests/algorithms
+    
+#### Overview of MBRL key attributes
+
+A diagnostic set of parameters have been set up to help you debugging your model more quickly, you can find it through the following [link](https://github.com/facebookresearch/mbrl-lib/blob/main/README.md#visualization-and-diagnostics-tools)
 
 ## Supported environments
 ### Dependencies
@@ -116,6 +116,8 @@ Install [`dm_control`](https://github.com/deepmind/dm_control) by running this c
 Install [`openAI gym`](https://github.com/openai/gym) by runnig this command
 
     pip install gym
+    
+
    
 ## Added Visualization
 wanb?
