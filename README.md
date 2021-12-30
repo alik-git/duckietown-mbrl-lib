@@ -9,22 +9,22 @@
 
 clean up what we keep from precious
 
-Tutorial on what files does what
+wandb tuto
 
-wanb tuto
-
-Cuda
-
-hydra
+Cuda/intro (Ali)
 
 MBRL key attributes overview
 
-bashrc thingy add ali
+License
+
+Citation
 
 ## Virtual environement setup
 We recommend using [anaconda](https://docs.anaconda.com/anaconda/install/linux/)'s virtual environements and the python version 3.8.
 
     conda create --name RlDuckie python=3.8
+ Then activate it
+ 
     conda activate RlDuckie
 ## Gym-Duckietown
 You will need to do the [duckietown laptop](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html) setup to use the gym-duckietown
@@ -63,18 +63,22 @@ Then go to ~/anaconda3/envs/mb/lib/python3.8/site-packages
 
 There you will find some .pth files, make a new one called duckietowngym.pth (name is not important, you can call it whatever) and make this the content: 
 
-import sys
-sys.path.append('<actual Path To you're gym-duckietown>')
+    import sys
+    sys.path.append('<actual Path To you're gym-duckietown>')
 
 Now just restart the terminal and you should be able to import gym duckietown stuff in your python venv
 
 ## MBRL-Lib
 ## Getting Started
 #### Developer installation
-Clone the repository and set up a development environment as follows
+Clone the repository and set up a development environment as follows(Get out oof the gym-duckietown repo before)
 
     git clone https://github.com/alik-git/mbrl-lib
+    cd mbrl-lib
+    conda activate RlDuckie
     pip install -e ".[dev]"
+    pip install wandb
+    conda install pandas
 
 And test it by running the following from the root folder of the repository
 
@@ -92,11 +96,13 @@ To use mujoco you MAY need to install these packages
     libosmesa6-dev software-properties-common net-tools unzip vim \
     virtualenv wget xpra xserver-xorg-dev libglfw3-dev patchelf
     
-For mujoco you will need to add these path to youre LD_LIBRARY_PATH, we suggest you add it to you're .bashrc files in the hidden files on you're home, simply paste the line at the end of the file.
+For mujoco you will need to add these path to youre LD_LIBRARY_PATH, we suggest you add it to you're .bashrc files in the hidden files on you're home, simply paste the line at the end of the file.While you are there you should add the PYTHONPATH to you're gym-duckietown, because we found it prevents some imports problem.
 You can also run the lines every time you enter a new terminal
 
     export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:<change this for youre path to .mujoco>/.mujoco/mujoco210/bin"
     export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/lib/nvidia"
+    export PYTHONPATH="${PYTHONPATH}:<path to you're clone of gym-duckietown>"
+    
 To test if it works run
 
     python -m pytest tests/mujoco
@@ -146,6 +152,23 @@ Delete all there is in the file and paste this instead(change the path to youre 
            }
        ]
     }
+## Typical run
+To test if you're CUDA works, run
+
+    nvcc --version
+    
+If there is an error at this point either you debug it or you can switch to CPU by replacing "cuda:0" by "cpu" in the "/mbrl/examples/conf/main.yaml" file.
+
+To run an experiment run:
+
+    python -m mbrl.examples.main algorithm=planet dynamics_model=planet  overrides=planet_duckietown     
+    
+If you run out of memory, you can decrease the dataset size parameter in "/mbrl/example/conf/algorithm/planet.yaml". Do not reduce it under 1000 or it might fail.
+
+## MBRL-Overview
+
+
+
 
 ## License
 Todo
