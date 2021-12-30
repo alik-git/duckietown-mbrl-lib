@@ -4,7 +4,8 @@
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 # Reinforcement Learning in Duckietown using MBRL
-*** Introduction thing citation plagiarism [paper](https://arxiv.org/abs/2104.10159). 
+*** Introduction thing citation plagiarism [paper](https://arxiv.org/abs/2104.10159).
+
 ## Missing
 
 clean up what we keep from precious
@@ -19,8 +20,6 @@ Tutorial on what files does what (Max)
 Then start using the wandb module through their [tutorial](https://docs.wandb.ai/quickstart)
 
 ## Installation of CUDA
-
-## Installation of Hydra
 
 ## Overview of MBRL key attributes
 
