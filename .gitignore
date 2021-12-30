@@ -27,3 +27,4 @@ wheels/
 *.egg
 MANIFEST
 wandb/
+scratch.py
