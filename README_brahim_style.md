@@ -6,12 +6,6 @@
 # Reinforcement Learning in Duckietown using MBRL
 Paper inspired from `MBRL-Lib: A Modular Library for Model-based Reinforcement Learning` [paper](https://arxiv.org/abs/2104.10159).
 
-## Missing
-
-clean up what we keep from precious
-
-Tutorial on what files does what (Max)
-
 ## Installing Wandb (Weights & Biases) to reproduce our results
 [Link](https://wandb.ai/alihkw/RLDucky/runs/ijjamoqp?fbclid=IwAR0cyArbkjYi9ualpBhS_ySAGEc-TyN7DT9mNPHHkwToklf7wn2S0ubj3tA&workspace=user-) used during our simulation of the duckietown environment using MBRL. You can install the library with :
 
@@ -28,6 +22,7 @@ We recommend using [anaconda](https://docs.anaconda.com/anaconda/install/linux/)
 
     conda create --name RlDuckie python=3.8
     conda activate RlDuckie
+
 ## Gym-Duckietown
 You will need to do the [duckietown laptop](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html) setup to use the gym-duckietown
 
