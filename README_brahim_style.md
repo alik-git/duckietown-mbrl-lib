@@ -4,7 +4,7 @@
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 # Reinforcement Learning in Duckietown using MBRL
-*** Paper inspired from MBRL-Lib: A Modular Library for Model-based Reinforcement Learning [paper](https://arxiv.org/abs/2104.10159).
+Paper inspired from `MBRL-Lib: A Modular Library for Model-based Reinforcement Learning` [paper](https://arxiv.org/abs/2104.10159).
 
 ## Missing
 
