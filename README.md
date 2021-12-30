@@ -3,9 +3,30 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebookresearch/mbrl-lib/tree/main/LICENSE)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+# Reinforcement Learning in Duckietown using MBRL
+## dependencies
+mujoco
+dm-controls
+
  
 
-# MBRL-Lib
+## Gym-Duckietown
+Todo: add reference to repo of gym duckietown maybe not
+
+    pip install pytz
+    pip install docker
+    pip install docker-compose
+    pip install texttable
+    pip install numpy
+    pip install torch
+    
+## Previous MBRL
+We recommend using anaconda's virtual environements and the python version 3.8.
+
+    conda create --name RlDuckie python=3.8
+    conda activate RlDuckie
+      
+## MBRL-Lib
 
 ``mbrl`` is a toolbox for facilitating development of 
 Model-Based Reinforcement Learning algorithms. It provides easily interchangeable 
@@ -84,6 +105,9 @@ all the available options, take a look at the provided
 [configuration files](https://github.com/facebookresearch/mbrl-lib/tree/main/mbrl/examples/conf). 
 
 ## Supported environments
+### Mujoco instalation
+Do the install MuJoCo paragraph and "Install and use mujoco-py"  [`mujoco-py`](https://github.com/openai/mujoco-py)
+### MBRL
 Our example configurations are largely based on [Mujoco](https://mujoco.org/), but
 our library components (and algorithms) are compatible with any environment that follows
 the standard gym syntax. You can try our utilities in other environments 
