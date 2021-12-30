@@ -7,10 +7,6 @@
 *** Introduction thing citation plagiarism [paper](https://arxiv.org/abs/2104.10159). 
 ## Missing
 
-clean up what we keep from precious
-
-wandb tuto
-
 Cuda/intro (Ali)
 
 MBRL key attributes overview
@@ -117,8 +113,14 @@ Install [`openAI gym`](https://github.com/openai/gym) by runnig this command
 
     pip install gym
    
-## Added Visualization
-wanb?
+## Visualization
+You'll have to create an account and to get all set here is their quickstart [tutorial](https://docs.wandb.ai/quickstart).
+
+Here is an [example](https://wandb.ai/alihkw/RLDucky/runs/ijjamoqp?fbclid=IwAR0cyArbkjYi9ualpBhS_ySAGEc-TyN7DT9mNPHHkwToklf7wn2S0ubj3tA&workspace=user-) of the visualization obtained on Weights and Biases.
+
+***Whats actually nice about it
+
+
 ## Debugger
 
 For those using VSCode, here is a tutorial on how to set up a debugger.
