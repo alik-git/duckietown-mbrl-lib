@@ -5,7 +5,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 # Reinforcement Learning in Duckietown using MBRL
 ## Virtual environement setup
-We recommend using anaconda's virtual environements and the python version 3.8.
+We recommend using [anaconda](https://docs.anaconda.com/anaconda/install/linux/)'s virtual environements and the python version 3.8.
 
     conda create --name RlDuckie python=3.8
     conda activate RlDuckie
@@ -19,7 +19,8 @@ clone Gym-Duckietown and navigate to the master branch
     git checkout master
     pip3 install -e .
     pip install torch
-      
+Set path in path env
+*** todo
 ## MBRL-Lib
 
 ``mbrl`` is a toolbox for facilitating development of 
@@ -46,8 +47,6 @@ a development environment as follows
 
     git clone https://github.com/facebookresearch/mbrl-lib.git
     pip install -e ".[dev]"
-    pip install hydra   ***Might not be necessairy
-
 
 And test it by running the following from the root folder of the repository
 
@@ -110,6 +109,13 @@ To use mujoco you MAY need to install these packages
     sudo apt install curl git libgl1-mesa-dev libgl1-mesa-glx libglew-dev \
     libosmesa6-dev software-properties-common net-tools unzip vim \
     virtualenv wget xpra xserver-xorg-dev libglfw3-dev patchelf
+    
+For mujoco you will need to add these path to youre LD_LIBRARY_PATH, we suggest you add it to youre .bashrc files in the hidden files on youre home, simply paste the line at the end of the file.
+You can also run the lines every time you enter a new terminal
+
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/kuwajerw/.mujoco/mujoco210/bin"
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/lib/nvidia"
+
 #### dm_control
 
     pip install dm_control
