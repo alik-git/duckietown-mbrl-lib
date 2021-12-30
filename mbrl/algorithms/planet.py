@@ -23,6 +23,8 @@ from mbrl.util.common import (
     rollout_agent_trajectories,
 )
 
+import wandb
+
 METRICS_LOG_FORMAT = [
     ("observations_loss", "OL", "float"),
     ("reward_loss", "RL", "float"),
@@ -147,6 +149,7 @@ def train(
         replay_buffer.save(work_dir)
         metrics = get_metrics_and_clear_metric_containers()
         logger.log_data("metrics", metrics)
+        wandb.log(metrics)
 
         # Collect one episode of data
         episode_reward = 0.0
@@ -180,6 +183,13 @@ def train(
                 "train_episode_reward": episode_reward * (1 - is_test_episode(episode)),
                 "env_step": step,
             },
+        )
+        wandb.log(
+            {
+                "episode_reward": episode_reward * is_test_episode(episode),
+                "train_episode_reward": episode_reward * (1 - is_test_episode(episode)),
+                "env_step": step,
+            }
         )
 
     # returns average episode reward (e.g., to use for tuning learning curves)
