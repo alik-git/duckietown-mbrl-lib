@@ -383,6 +383,8 @@ class SequenceTransitionSampler(TransitionIterator):
             raise StopIteration
         self._current_batch += 1
 
+        # If num_stored is zero and a sample is attempted,
+        # the sequence sampler crashes
         if self.num_stored == 0:
             raise StopIteration
 
@@ -441,8 +443,6 @@ class ReplayBuffer:
     ):
         self.cur_idx = 0
         self.capacity = capacity
-        print(f"{self.capacity=}")
-        
         self.num_stored = 0
 
         self.trajectory_indices: Optional[List[Tuple[int, int]]] = None

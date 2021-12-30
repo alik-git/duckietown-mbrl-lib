@@ -89,6 +89,8 @@ def _legacy_make_env(
             env = mbrl.env.mujoco_envs.HumanoidTruncatedObsEnv()
             term_fn = mbrl.env.termination_fns.ant
             reward_fn = None
+        # Use the duckietown environment with settings that 
+        # closely match the settings used for cheetah run
         elif cfg.overrides.env == "duckietown_gym_env":
             env = mbrl.env.DuckietownEnv(domain_rand=False, camera_width=64, camera_height=64)
             term_fn = mbrl.env.termination_fns.no_termination

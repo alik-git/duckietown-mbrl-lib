@@ -17,7 +17,6 @@ from .model import Model
 from .util import Conv2dDecoder, Conv2dEncoder, to_tensor
 
 from PIL import Image
-import time
 
 
 def dreamer_init(m: nn.Module):
@@ -374,7 +373,7 @@ class PlaNetModel(Model):
             # obs = F.interpolate(obs, [64,64])
             pass
         
-        # if you want to debug / view an observation
+        # if you want to debug / view an observation uncomment line below
         # self.get_and_view_obs(obs[0])
         
         obs_encoding = self.encoder.forward(obs)
@@ -434,9 +433,14 @@ class PlaNetModel(Model):
                 current_latent_state,
                 current_belief,
             )
+            # save decoder output to a temp variable
             decoder_output = self._forward_decoder(posterior_sample, next_belief)
+
+            # if using the duckietown environment, permute the returned tensor to match the correct dimension
             if self.in_duckietown:
                 decoder_output = decoder_output.permute((0,2,3,1))
+
+            # put decoder output back where it belongs
             pred_next_obs[:, t_step] = decoder_output
             pred_rewards[:, t_step] = self.reward_model(
                 torch.cat([next_belief, posterior_sample], dim=1)

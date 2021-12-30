@@ -16,4 +16,3 @@ action_noise_std: 0.3
 test_frequency: 25
 num_episodes: 1000
 dataset_size: 1000000
-dataset_size: 5 # because overriding it does not seem to work
