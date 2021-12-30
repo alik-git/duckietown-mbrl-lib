@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebookresearch/mbrl-lib/tree/main/LICENSE)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 # Reinforcement Learning in Duckietown using MBRL
 Paper inspired from `MBRL-Lib: A Modular Library for Model-based Reinforcement Learning` [paper](https://arxiv.org/abs/2104.10159).
 
@@ -57,14 +58,16 @@ Which will output something similar to this:
     ~/anaconda3/envs/mb/lib/python3.8/site-packages
     >>> 
 
-Then go to ~/anaconda3/envs/mb/lib/python3.8/site-packages
+Then go to `~/anaconda3/envs/mb/lib/python3.8/site-packages`
 
-There you will find some .pth files, make a new one called duckietowngym.pth (name is not important, you can call it whatever) and make this the content: 
+There you will find some .pth files, make a new one called duckietowngym.pth (name is not important) and put the content below : 
 
+```
 import sys
-sys.path.append('<actual Path To you're gym-duckietown>')
+sys.path.append('<path_to_your_gym_duckietown')
+```
 
-Now just restart the terminal and you should be able to import gym duckietown stuff in your python venv
+Now just restart the terminal and you should be able to import gym duckietown module in your python venv
 
 ## MBRL-Lib
 ## Getting Started
