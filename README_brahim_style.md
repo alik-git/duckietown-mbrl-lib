@@ -15,7 +15,9 @@ Then start using the wandb module through their [tutorial](https://docs.wandb.ai
 
 ## Installation of CUDA
 
-You can follow the tutorial to install CUDA through the following [link](https://docs.nvidia.com/cuda/cuda-quick-start-guide/index.html?fbclid=IwAR3oFJmwT4pk2Zoed4_pqAiMUZYRguYbHCqsggyEMgnqKts0PwK3_-o7FJw) and get your CUDA toolkit through this [link](https://developer.nvidia.com/cuda-zone?fbclid=IwAR1kBD-547CcmKRm1YWCtrZxg8jeRx_wRY1XZhSl_bPhAHgZ9RipQwNjYBA)
+You can follow the tutorial to install CUDA through the following [link](https://docs.nvidia.com/cuda/cuda-quick-start-guide/index.html?fbclid=IwAR3oFJmwT4pk2Zoed4_pqAiMUZYRguYbHCqsggyEMgnqKts0PwK3_-o7FJw) and get your CUDA toolkit through this [link](https://developer.nvidia.com/cuda-zone?fbclid=IwAR1kBD-547CcmKRm1YWCtrZxg8jeRx_wRY1XZhSl_bPhAHgZ9RipQwNjYBA).
+For our demonstration, we're using CUDA version 10.1.
+
 ## Virtual environement setup
 We recommend using [anaconda](https://docs.anaconda.com/anaconda/install/linux/)'s virtual environements and the python version 3.8.
 
