@@ -11,13 +11,18 @@ clean up what we keep from precious
 
 Tutorial on what files does what (Max)
 
-wanb tuto(Brahim) https://wandb.ai/site?gclid=CjwKCAiA-9uNBhBTEiwAN3IlNAIsScYR0DRScX0kE7xE9IrN75iFZfXxZ3y0u1lakDb5W0Wg03TUJhoCwqoQAvD_BwE
+## Installing Wandb (Weights & Biases) to reproduce our results
+[Link](https://wandb.ai/alihkw/RLDucky/runs/ijjamoqp?fbclid=IwAR0cyArbkjYi9ualpBhS_ySAGEc-TyN7DT9mNPHHkwToklf7wn2S0ubj3tA&workspace=user-) used during our simulation of the duckietown environment using MBRL. You can install the library with :
 
-Cuda(ALI)
+`pip install wandb --upgrade`
 
-hydra(Idont if we have to import or if automatic and what version)(Max)
+## Installation of CUDA
 
-MBRL key attributes overview(Brahim)
+## Installation of Hydra
+
+## Overview of MBRL key attributes
+
+A diagnostic set of parameters have been set up to help you debugging your model more quickly, you can find it through the following [link](https://github.com/facebookresearch/mbrl-lib/blob/main/README.md#visualization-and-diagnostics-tools)
 
 bashrc thingy add ali
 
