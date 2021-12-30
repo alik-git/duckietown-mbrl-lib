@@ -4,6 +4,14 @@
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 # Reinforcement Learning in Duckietown using MBRL
+## Missing
+
+clean up what we keep from precious
+Tutorial on what files does what
+wanb tuto
+Cuda
+hydra
+
 ## Virtual environement setup
 We recommend using [anaconda](https://docs.anaconda.com/anaconda/install/linux/)'s virtual environements and the python version 3.8.
 
@@ -47,7 +55,7 @@ Then go to ~/anaconda3/envs/mb/lib/python3.8/site-packages
 There you will find some .pth files, make a new one called duckietowngym.pth (name is not important, you can call it whatever) and make this the content: 
 
 import sys
-sys.path.append('actual Path To you're gym-duckietown')
+sys.path.append('<actual Path To you're gym-duckietown>')
 
 Now just restart the terminal and you should be able to import gym duckietown stuff in your python venv
 
@@ -122,7 +130,7 @@ all the available options, take a look at the provided
 ## Supported environments
 ### Dependencies
 #### mujoco
-Do the install "MuJoCo" and "Install and use mujoco-py" paragraphs from [`mujoco-py`](https://github.com/openai/mujoco-py)
+Do the "install MuJoCo" and "Install and use mujoco-py" paragraphs from [`mujoco-py`](https://github.com/openai/mujoco-py)
 
 To use mujoco you MAY need to install these packages
    
@@ -193,7 +201,7 @@ Delete all there is in the file and paste this instead(change the path to youre 
                "name": "Python: Current File",
                "type": "python",
                "request": "launch",
-               "python": "/home/kuwajerw/anaconda3/envs/mbgym/bin/python",
+               "python": "<pathToAnacondaFile>/anaconda3/envs/mbgym/bin/python",
                // "program": "${file}",
                "module": "mbrl.examples.main",
                "args": [
@@ -205,9 +213,6 @@ Delete all there is in the file and paste this instead(change the path to youre 
            }
        ]
     }
-
-
-Select Python, then Python File
 ## Visualization and diagnostics tools
 Our library also contains a set of 
 [diagnostics](https://github.com/facebookresearch/mbrl-lib/tree/main/mbrl/diagnostics) tools, meant to facilitate 
