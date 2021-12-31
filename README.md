@@ -238,7 +238,7 @@ additional details about it. See also the MBRL-Lib author's  [Terms of Use](http
 
 #### For Gym-Duckietown:
 
-See their [Summary of Duckietown Software Terms of Use](https://github.com/duckietown/gym-duckietown/blob/daffy/LICENSE.pdf) and their [Terms and Conditions](https://www.duckietown.org/about/terms-and-conditions)
+See their [Summary of Duckietown Software Terms of Use](https://github.com/duckietown/gym-duckietown/blob/daffy/LICENSE.pdf) and their [Terms and Conditions](https://www.duckietown.org/about/terms-and-conditions).
 ## Citing
 
 Just give a shout out to Brahim Ben Malek for doing all the difficult work in this project <3
