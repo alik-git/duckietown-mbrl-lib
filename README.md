@@ -39,6 +39,13 @@ The first repo to clone is [Gym-Duckietown](https://github.com/duckietown/gym-du
     git checkout master
     pip3 install -e .
 
+#### Side Note:
+
+While trying to use Gym-Duckietown we ran into an issue involving a malfunctioning / deprecated `geometry` module. If you run into the same problem, you can just comment out that import. So just navigate to the `gym-duckietown/gym_duckietown/simulator.py` file and comment out the `import geometry` line.
+
+### Importing Gym-Duckietown into MBRL-Lib
+       
+
 To use the Duckietown environment seamlessly with MBRL-Lib, we will have to add the `gym-duckietown` repo as a python module to our python installation. There are two ways of doing this.
 
 #### Option 1: Using Path (.pth) Files 
