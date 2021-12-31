@@ -146,6 +146,17 @@ While trying to run MuJoCo we twice ran into an error relating to something invo
 ### Logging and Visualization (W&B)
 We use [Weights & Biases](https://wandb.ai/site) for logging and visualizing our run metrics. If you're unfamiliar with Weights & Biases, it is a powerful and convenient library to organize and track ML experiments. You can take look at their [quick-start guide](https://docs.wandb.ai/quickstart) and [documentation](https://docs.wandb.ai/), and you'll have to create an account to be able to view and use the dashboard, you can do so [here](https://wandb.ai/site). 
 
+For this project, just specify your `wandb` username and project name in the [main.py](mbrl/examples/main.py) file in the following section:
+```python
+    if __name__ == "__main__":
+
+        wandb.init(
+            project="<Your W&B Project Name Here>", 
+            entity="<Your W&B Username Here>"
+        )
+        run()
+```
+
 ## Usage
 
 To run an experiment you can use commands in the following format:
