@@ -230,13 +230,13 @@ If you run out of memory, you can decrease the dataset size parameter in "/mbrl/
 ## License
 Our work here is a small addition to the MBRL-Lib project and Gym-Duckietown project. All rights for those projects are held by their respective authors.
 
-For MBRL-Lib:
+#### For MBRL-Lib:
 
 `mbrl` is released under the MIT license. See the mbrl [LICENSE file](https://github.com/facebookresearch/mbrl-lib/blob/main/LICENSE) for 
 additional details about it. See also the MBRL-Lib author's  [Terms of Use](https://opensource.facebook.com/legal/terms) and 
 [Privacy Policy](https://opensource.facebook.com/legal/privacy).
 
-For Gym-Duckietown:
+#### For Gym-Duckietown:
 
 See their [Summary of Duckietown Software Terms of Use](https://github.com/duckietown/gym-duckietown/blob/daffy/LICENSE.pdf) and their [Terms and Conditions](https://www.duckietown.org/about/terms-and-conditions)
 ## Citing
