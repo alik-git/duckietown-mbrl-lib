@@ -11,9 +11,7 @@ Before continuing, we suggest you take a look at the readme files for both [MBRL
 
 
 <!-- *** Introduction thing citation plagiarism [paper](https://arxiv.org/abs/2104.10159). 
-## Missing
 
-Cuda/intro (Ali)
 
 MBRL key attributes overview
 
