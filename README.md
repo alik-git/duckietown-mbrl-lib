@@ -99,7 +99,7 @@ You will have to do this every time you restart your terminal. If you want to do
 
 Clone this repository and install the required python packages:
 
-    git clone https://github.com/alik-git/mbrl-lib
+    git clone https://github.com/alik-git/duckietown-mbrl-lib
     cd mbrl-lib
     conda activate RLDucky
     pip install -e ".[ducky]"
