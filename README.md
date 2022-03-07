@@ -28,10 +28,23 @@ We recommend making a python [virtual environment](https://realpython.com/python
  Then to activate it use:
  
     conda activate RLDucky
+
+You will use this python virtual environment whenever you are running code from this repo. You should use a seperate virtual environment when running code from the duckietown repo, such as in the commands below.
 ### Gym-Duckietown
 <!-- You will need to do the [duckietown laptop](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html) setup to use the gym-duckietown -->
+
+Make a new virtual environment for the Gym-Duckietown repo:
+
+    conda create --name GymDucky python=3.8
+
+ Then to activate it use:
+ 
+    conda activate GymDucky
+
+
 The first repo to clone is [Gym-Duckietown](https://github.com/duckietown/gym-duckietown.git), and make sure you checkout and use the master branch. Additionally you can install the required python packages for that repo via the command `pip install -e .` where `.` specifies the current directory.
 
+    conda activate GymDucky
     git clone https://github.com/duckietown/gym-duckietown.git
     cd gym-duckietown 
     git checkout master
@@ -42,8 +55,11 @@ The first repo to clone is [Gym-Duckietown](https://github.com/duckietown/gym-du
 While trying to use Gym-Duckietown we ran into an issue involving a malfunctioning / deprecated `geometry` module. If you run into the same problem, you can just comment out that import. So just navigate to the `gym-duckietown/gym_duckietown/simulator.py` file and comment out the `import geometry` line.
 
 ### Importing Gym-Duckietown into MBRL-Lib
-       
 
+For the following commands, switch back to your RLDucky environment:
+
+    conda activate RLDucky
+       
 To use the Duckietown environment seamlessly with MBRL-Lib, we will have to add the `gym-duckietown` repo as a python module to our python installation. There are two ways of doing this.
 
 #### Option 1: Using Path (.pth) Files 
