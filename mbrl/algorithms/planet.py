@@ -24,6 +24,7 @@ from mbrl.util.common import (
 )
 
 import wandb
+from gym.wrappers import Monitor
 
 METRICS_LOG_FORMAT = [
     ("observations_loss", "OL", "float"),
@@ -150,10 +151,16 @@ def train(
         metrics = get_metrics_and_clear_metric_containers()
         logger.log_data("metrics", metrics)
         wandb.log(metrics)
+        
+        if is_test_episode(episode):
+            print("AHH ITS A TEST EPISODE!!!")
+            curr_env = Monitor(env, work_dir, force=True)
+        else:
+            curr_env = env
 
         # Collect one episode of data
         episode_reward = 0.0
-        obs = env.reset()
+        obs = curr_env.reset()
         agent.reset()
         planet.reset_posterior()
         action = None
@@ -164,11 +171,11 @@ def train(
                 0
                 if is_test_episode(episode)
                 else cfg.overrides.action_noise_std
-                * np_rng.standard_normal(env.action_space.shape[0])
+                * np_rng.standard_normal(curr_env.action_space.shape[0])
             )
             action = agent.act(obs) + action_noise
             action = np.clip(action, -1.0, 1.0)  # to account for the noise
-            next_obs, reward, done, info = env.step(action)
+            next_obs, reward, done, info = curr_env.step(action)
             replay_buffer.add(obs, action, next_obs, reward, done)
             episode_reward += reward
             obs = next_obs
