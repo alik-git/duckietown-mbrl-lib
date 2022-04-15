@@ -140,6 +140,7 @@ def train(
     step = replay_buffer.num_stored
     total_rewards = 0.0
     for episode in range(cfg.algorithm.num_episodes):
+        print(f"###\nNow on episode {episode} of {cfg.algorithm.num_episodes - 1}")
         # Train the model for one epoch of `num_grad_updates`
         dataset, _ = get_sequence_buffer_iterator(
             replay_buffer,
