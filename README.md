@@ -197,6 +197,10 @@ For this project, just specify your `wandb` username and project name in the [ma
 To run an experiment you can use commands in the following format:
 
     python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_duckietown     
+
+Here is another example of a command with shorter episodes:
+
+    python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_cheetah_run algorithm.test_frequency=2 overrides.sequence_length=10 overrides.batch_size=10
     
 You will see the output of your run in the terminal as well as in a results file created by Hydra located by default at `.exp/planet/default/duckietown_gym_env/yyyy.mm.dd/hhmmss`; you can change the root directory (`./exp`) by passing 
 `root_dir=path-to-your-dir`, and the experiment sub-folder (`default`) by
