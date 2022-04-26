@@ -1,2 +1,4 @@
 theme: jekyll-theme-cayman
 show_downloads: true
+title: Duckietown MBRL-Lib
+description: Model based reinforcement learning with Gym-Duckietown.
