@@ -1,0 +1,5 @@
+exp
+*.pyc
+mbrl.egg-info
+wandb
+.vscode
