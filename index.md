@@ -89,7 +89,7 @@ Having trouble with Pages? Check out our [documentation](https://docs.github.com
 
 
 
-<!-- 
+```latex
 
 
 
@@ -874,6 +874,7 @@ In this work we applied two MBRL approaches to the Duckietown environment. We le
 % Codrina Lauth. Alex Smola contributed to the algorithmic style files.
 
 
+```
 
 
 
@@ -891,6 +892,3 @@ In this work we applied two MBRL approaches to the Duckietown environment. We le
 
 
 
-
-
- -->
