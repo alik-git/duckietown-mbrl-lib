@@ -92,7 +92,14 @@ def _legacy_make_env(
         # Use the duckietown environment with settings that 
         # closely match the settings used for cheetah run
         elif cfg.overrides.env == "duckietown_gym_env":
-            env = mbrl.env.DuckietownEnv(domain_rand=False, camera_width=64, camera_height=64, set_start_pos=np.array([3.68356218, 0., 1.50287902]), set_start_angle=np.array([-1.564463624086557]))
+            # env = mbrl.env.DuckietownEnv(domain_rand=False, camera_width=64, camera_height=64, set_start_pos=np.array([3.68356218, 0., 1.50287902]), set_start_angle=np.array([-1.564463624086557]))
+            env = mbrl.env.DuckietownEnv(
+                domain_rand=False,
+                camera_width=64,
+                camera_height=64,
+                set_start_pos=np.array([3.68680743, 0.0, 2.01533089]),
+                set_start_angle=np.array([-1.564463624086557])
+            )
             term_fn = mbrl.env.termination_fns.no_termination
             reward_fn = None 
         else:
