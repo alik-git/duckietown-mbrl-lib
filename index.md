@@ -1,4 +1,4 @@
-## Welcome to GitHub Pages
+## Duckietown MBRL-Lib
 
 You can use the [editor on GitHub](https://github.com/alik-git/duckietown-mbrl-lib/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
