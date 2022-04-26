@@ -16,7 +16,9 @@ Therefore, improving MBRL approaches to outperform MF approaches for tough envir
 
 In this work we attempt to use two MBRL algorithms, Dreamer-v1 and PlaNet, to learn a world model for the Gym-Duckietown environment, which we then use to train a lane-following policy. The Gym-Duckietown environment is significantly larger and more complex than environments included in the aforementioned algorithms' respective papers. We also provide the code we used, where we place a strong emphasis on documentation and modularity, so that more MBRL approaches can be applied to Gym-Duckietown, where our Dreamer-v1 and PlaNet can serve as comparative baselines. This helps us move toward our goal of getting robots to perform the kinds of difficult tasks we care about.
 
-## 
+## Related Work
+
+###### 2 [2 pts] What is the related work? Provide references: (1-2 paragraph(s)) Give a description of the most related work. How is your work similar or different from the most related work? 
 
 
 
