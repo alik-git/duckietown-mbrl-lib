@@ -1,4 +1,3 @@
-## Duckietown MBRL-Lib Testing
 
 
 
