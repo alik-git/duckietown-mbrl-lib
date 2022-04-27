@@ -11,6 +11,7 @@ import torch
 import mbrl.algorithms.mbpo as mbpo
 import mbrl.algorithms.pets as pets
 import mbrl.algorithms.planet as planet
+import mbrl.algorithms.dreamer as dreamer #added April 2022 for project
 import mbrl.util.env
 
 import pandas as pd
@@ -76,12 +77,10 @@ def run(cfg: omegaconf.DictConfig):
         return mbpo.train(env, test_env, term_fn, cfg)
     if cfg.algorithm.name == "planet":
         return planet.train(env, cfg)
+    if cfg.algorithm.name == "dreamer": #added for project
+        return dreamer.train(env, cfg)
 
 
 if __name__ == "__main__":
-    wandb.init(
-        project="<Your W&B Project Name Here>",
-        entity="<Your W&B Username Here>",
-        monitor_gym=True
-    )
+    wandb.init(project="MBRL_Duckyt", entity="mbrl_ducky", monitor_gym=True)
     run()
