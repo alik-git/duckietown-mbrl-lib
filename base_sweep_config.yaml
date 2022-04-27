@@ -1,0 +1,443 @@
+command:
+- python
+- ${program}
+- ${args}
+method: bayes
+metric:
+  goal: maximize
+  name: average_episode_reward
+program: sweep.py
+parameters:
+  overrides.model_learning_rate:
+    max: 0.15
+    min: 1e-07
+    distribution: uniform
+  overrides.planning_horizon:
+    max: 500
+    min: 12
+    distribution: int_uniform
+  overrides.cem_num_iters:
+    max: 20
+    min: 5
+    distribution: int_uniform
+  overrides.action_noise_std:
+    max: 1.5
+    min: 0.15
+    distribution: uniform
+  overrides.cem_elite_ratio:
+    max: 0.3
+    min: 0.05
+    distribution: uniform
+  overrides.num_grad_updates:
+    max: 200
+    min: 50
+    distribution: int_uniform
+
+
+
+
+
+
+
+  overrides.action_noise_std:
+    max: 0.6
+    min: 0.15
+    distribution: uniform
+    
+
+
+  overrides.sequence_length:
+    max: 80
+    min: 50
+    distribution: int_uniform 
+    
+  _algorithm_agent_optimizer_cfg_return_mean_elites:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  _algorithm_agent_optimizer_cfg_population_size:
+    max: 2000
+    min: 500
+    distribution: int_uniform
+  _algorithm_agent_optimizer_cfg_num_iterations:
+    max: 20
+    min: 5
+    distribution: int_uniform
+  _algorithm_agent_optimizer_cfg_clipped_normal:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  _algorithm_agent_optimizer_cfg_upper_bound:
+    values:
+      - NA
+    distribution: categorical
+  _algorithm_agent_optimizer_cfg_lower_bound:
+    values:
+      - NA
+    distribution: categorical
+  _algorithm_agent_optimizer_cfg_elite_ratio:
+    max: 0.2
+    min: 0.05
+    distribution: uniform
+  _algorithm_agent_optimizer_cfg__target_:
+    values:
+      - mbrl.planning.CEMOptimizer
+    distribution: categorical
+  _algorithm_agent_optimizer_cfg_device:
+    values:
+      - cuda:0
+    distribution: categorical
+  _action_optimizer_return_mean_elites:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  _algorithm_num_initial_trajectories:
+    max: 10
+    min: 3
+    distribution: int_uniform
+  _algorithm_agent_keep_last_solution:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  _dynamics_model_obs_encoding_size:
+    max: 2048
+    min: 512
+    distribution: int_uniform
+  _dynamics_model_latent_state_size:
+    max: 60
+    min: 15
+    distribution: int_uniform
+  _algorithm_agent_planning_horizon:
+    max: 24
+    min: 6
+    distribution: int_uniform
+  _action_optimizer_population_size:
+    max: 2000
+    min: 500
+    distribution: int_uniform
+  _action_optimizer_num_iterations:
+    max: 20
+    min: 5
+    distribution: int_uniform
+  _action_optimizer_clipped_normal:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  _dynamics_model_hidden_size_fcs:
+    max: 400
+    min: 100
+    distribution: int_uniform
+  _overrides_cem_population_size:
+    max: 2000
+    min: 500
+    distribution: int_uniform
+  _dynamics_model_grad_clip_norm:
+    max: 20
+    min: 5
+    distribution: int_uniform
+  _overrides_cem_clipped_normal:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  _action_optimizer_upper_bound:
+    values:
+      - NA
+    distribution: categorical
+  _action_optimizer_lower_bound:
+    values:
+      - NA
+    distribution: categorical
+  _action_optimizer_elite_ratio:
+    max: 0.2
+    min: 0.05
+    distribution: uniform
+  _algorithm_agent_replan_freq:
+    max: 2
+    min: 1
+    distribution: int_uniform
+  _overrides_planning_horizon:
+    max: 24
+    min: 6
+    distribution: int_uniform
+  _overrides_num_grad_updates:
+    max: 200
+    min: 50
+    distribution: int_uniform
+  _overrides_action_noise_std:
+    max: 0.6
+    min: 0.15
+    distribution: uniform
+  _dynamics_model_obs_shape_2:
+    max: 128
+    min: 32
+    distribution: int_uniform
+  _dynamics_model_obs_shape_1:
+    max: 128
+    min: 32
+    distribution: int_uniform
+  _dynamics_model_obs_shape_0:
+    max: 6
+    min: 2
+    distribution: int_uniform
+  _dynamics_model_belief_size:
+    max: 400
+    min: 100
+    distribution: int_uniform
+  _dynamics_model_action_size:
+    values:
+      - NA
+    distribution: categorical
+  _algorithm_action_noise_std:
+    max: 0.6
+    min: 0.15
+    distribution: uniform
+  _overrides_sequence_length:
+    max: 100
+    min: 25
+    distribution: int_uniform
+  _overrides_cem_elite_ratio:
+    max: 0.2
+    min: 0.05
+    distribution: uniform
+  _algorithm_agent_action_ub:
+    values:
+      - NA
+    distribution: categorical
+  _algorithm_agent_action_lb:
+    values:
+      - NA
+    distribution: categorical
+  _action_optimizer__target_:
+    values:
+      - mbrl.planning.CEMOptimizer
+    distribution: categorical
+  _dynamics_model_free_nats:
+    max: 6
+    min: 2
+    distribution: int_uniform
+  _algorithm_test_frequency:
+    max: 50
+    min: 13
+    distribution: int_uniform
+  _algorithm_agent__target_:
+    values:
+      - mbrl.planning.TrajectoryOptimizerAgent
+    distribution: categorical
+  _overrides_cem_num_iters:
+    max: 20
+    min: 5
+    distribution: int_uniform
+  _dynamics_model_kl_scale:
+    max: 2
+    min: 1
+    distribution: int_uniform
+  _dynamics_model__target_:
+    values:
+      - mbrl.models.PlaNetModel
+    distribution: categorical
+  _algorithm_agent_verbose:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  _action_optimizer_device:
+    values:
+      - cuda:0
+    distribution: categorical
+  _overrides_trial_length:
+    max: 500
+    min: 125
+    distribution: int_uniform
+  _dynamics_model_min_std:
+    max: 0.2
+    min: 0.05
+    distribution: uniform
+  _algorithm_num_episodes:
+    max: 2000
+    min: 500
+    distribution: int_uniform
+  _algorithm_dataset_size:
+    max: 2000000
+    min: 500000
+    distribution: int_uniform
+  _dynamics_model_device:
+    values:
+      - cuda:0
+    distribution: categorical
+  _overrides_batch_size:
+    max: 100
+    min: 25
+    distribution: int_uniform
+  _overrides_free_nats:
+    max: 6
+    min: 2
+    distribution: int_uniform
+  _log_frequency_agent:
+    max: 2000
+    min: 500
+    distribution: int_uniform
+  log_frequency_agent:
+    max: 2000
+    min: 500
+    distribution: int_uniform
+  _overrides_kl_scale:
+    max: 2
+    min: 1
+    distribution: int_uniform
+  action_optimizer:
+    values:
+      - "{'_target_': 'mbrl.planning.CEMOptimizer'"
+      - "'num_iterations': '${overrides.cem_num_iters}'"
+      - "'elite_ratio': '${overrides.cem_elite_ratio}'"
+      - "'population_size': '${overrides.cem_population_size}'"
+      - "'alpha': '${overrides.cem_alpha}'"
+      - "'lower_bound': '???'"
+      - "'upper_bound': '???'"
+      - "'return_mean_elites': True"
+      - "'device': '${device}'"
+      - "'clipped_normal': '${overrides.cem_clipped_normal}'}"
+    distribution: categorical
+  _algorithm_name:
+    values:
+      - planet
+    distribution: categorical
+  dynamics_model:
+    values:
+      - "{'_target_': 'mbrl.models.PlaNetModel'"
+      - "'obs_shape': [3"
+      - 64
+      - 64]
+      - "'obs_encoding_size': 1024"
+      - "'encoder_config': [[3"
+      - 32
+      - 4
+      - 2]
+      - "[32"
+      - 64
+      - 4
+      - 2]
+      - "[64"
+      - 128
+      - 4
+      - 2]
+      - "[128"
+      - 256
+      - 4
+      - 2]]
+      - "'decoder_config': [[1024"
+      - 1
+      - 1]
+      - "[[1024"
+      - 128
+      - 5
+      - 2]
+      - "[128"
+      - 64
+      - 5
+      - 2]
+      - "[64"
+      - 32
+      - 6
+      - 2]
+      - "[32"
+      - 3
+      - 6
+      - 2]]]
+      - "'action_size': '???'"
+      - "'hidden_size_fcs': 200"
+      - "'belief_size': 200"
+      - "'latent_state_size': 30"
+      - "'device': '${device}'"
+      - "'min_std': 0.1"
+      - "'free_nats': 3.0"
+      - "'kl_scale': 1.0"
+      - "'grad_clip_norm': 10.0}"
+    distribution: categorical
+  _overrides_env:
+    values:
+      - duckietown_gym_env
+    distribution: categorical
+  _save_video:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  _experiment:
+    values:
+      - default
+    distribution: categorical
+  _debug_mode:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  save_video:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  experiment:
+    values:
+      - default
+    distribution: categorical
+  debug_mode:
+    values:
+      - "true"
+      - "false"
+    distribution: categorical
+  overrides:
+    values:
+      - "{'env': 'duckietown_gym_env'"
+      - "'trial_length': 250"
+      - "'action_noise_std': 0.3"
+      - "'num_grad_updates': 100"
+      - "'sequence_length': 50"
+      - "'batch_size': 50"
+      - "'free_nats': 3"
+      - "'kl_scale': 1.0"
+      - "'planning_horizon': 12"
+      - "'cem_num_iters': 10"
+      - "'cem_elite_ratio': 0.1"
+      - "'cem_population_size': 1000"
+      - "'cem_alpha': 0.0"
+      - "'cem_clipped_normal': True}"
+    distribution: categorical
+  algorithm:
+    values:
+      - "{'name': 'planet'"
+      - "'agent': {'_target_': 'mbrl.planning.TrajectoryOptimizerAgent'"
+      - "'action_lb': '???'"
+      - "'action_ub': '???'"
+      - "'planning_horizon': '${overrides.planning_horizon}'"
+      - "'optimizer_cfg': '${action_optimizer}'"
+      - "'replan_freq': 1"
+      - "'keep_last_solution': False"
+      - "'verbose': '${debug_mode}'}"
+      - "'num_initial_trajectories': 5"
+      - "'action_noise_std': 0.3"
+      - "'test_frequency': 25"
+      - "'num_episodes': 1000"
+      - "'dataset_size': 1000000}"
+    distribution: categorical
+  _root_dir:
+    values:
+      - ./exp
+    distribution: categorical
+  root_dir:
+    values:
+      - ./exp
+    distribution: categorical
+  _device:
+    values:
+      - cuda:0
+    distribution: categorical
+  device:
+    values:
+      - cuda:0
+    distribution: categorical

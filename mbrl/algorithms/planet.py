@@ -25,6 +25,9 @@ from mbrl.util.common import (
 
 import wandb
 from gym.wrappers import Monitor
+from gym.wrappers.monitoring.video_recorder import VideoRecorder
+from PIL import Image
+import cv2
 
 METRICS_LOG_FORMAT = [
     ("observations_loss", "OL", "float"),
@@ -47,6 +50,7 @@ def train(
         work_dir = os.getcwd()
     work_dir = pathlib.Path(work_dir)
     print(f"Results will be saved at {work_dir}.")
+    wandb.config.update({"work_dir": str(work_dir)})
 
     if silent:
         logger = None
@@ -91,7 +95,9 @@ def train(
     planet = hydra.utils.instantiate(cfg.dynamics_model)
     assert isinstance(planet, mbrl.models.PlaNetModel)
     model_env = ModelEnv(env, planet, no_termination, generator=rng)
-    trainer = ModelTrainer(planet, logger=logger, optim_lr=1e-3, optim_eps=1e-4)
+    print(f"\n###\nUsing learning rate: {cfg.overrides.model_learning_rate}\n###")
+    
+    trainer = ModelTrainer(planet, logger=logger, optim_lr=cfg.overrides.model_learning_rate, optim_eps=1e-4)
 
     # Create CEM agent
     # This agent rolls outs trajectories using ModelEnv, which uses planet.sample()
@@ -134,6 +140,7 @@ def train(
     step = replay_buffer.num_stored
     total_rewards = 0.0
     for episode in range(cfg.algorithm.num_episodes):
+        print(f"###\nNow on episode {episode} of {cfg.algorithm.num_episodes - 1}")
         # Train the model for one epoch of `num_grad_updates`
         dataset, _ = get_sequence_buffer_iterator(
             replay_buffer,
@@ -150,11 +157,13 @@ def train(
         replay_buffer.save(work_dir)
         metrics = get_metrics_and_clear_metric_containers()
         logger.log_data("metrics", metrics)
+        metrics['global_episode'] = episode
         wandb.log(metrics)
         
         if is_test_episode(episode):
-            print("AHH ITS A TEST EPISODE!!!")
-            curr_env = Monitor(env, work_dir, force=True)
+            print(f"Reached Test Episode! Episode: {episode}")
+            curr_env = Monitor(env, work_dir / "videos" / f"{episode:05d}", force=True)
+            planet.save(work_dir / "models" / f"{episode:05d}" / "planet.pth")
         else:
             curr_env = env
 
@@ -196,8 +205,13 @@ def train(
                 "episode_reward": episode_reward * is_test_episode(episode),
                 "train_episode_reward": episode_reward * (1 - is_test_episode(episode)),
                 "env_step": step,
+                "global_episode": episode
             }
         )
+        avg_ep_reward = total_rewards / (episode+1)
+        wandb.log({'average_episode_reward': avg_ep_reward, "global_episode": episode})
 
     # returns average episode reward (e.g., to use for tuning learning curves)
-    return total_rewards / cfg.algorithm.num_episodes
+    avg_ep_reward = total_rewards / cfg.algorithm.num_episodes
+    wandb.log({'average_episode_reward': avg_ep_reward, "global_episode": episode})
+    return avg_ep_reward

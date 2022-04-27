@@ -157,13 +157,27 @@ To confirm that MuJoCo is installed and working correctly, run the following com
     cd /your/path/to/mbrl-lib
     python -m pytest tests/mujoco
 
-#### Side Note:
-While trying to run MuJoCo we twice ran into an error relating to something involving `undefined symbol: __glewBindBuffer`, and the only fix we found (from a Reddit [thread](https://www.reddit.com/r/reinforcementlearning/comments/qay11a/how_to_use_mujoco_from_python3/)) was to install the following packages:
+#### Mujoco Issues:
+
+A few issues with mujoco - and I've encountered this during other projects as well - are about mujoco not neatly attaching to a rendering engine in your software environment. On Ubuntu it seems to try and use the [OpenGL](https://en.wikipedia.org/wiki/OpenGL) rendering engine, and to find it is uses [GLEW](https://github.com/nigels-com/glew). But this process doesn't always end up being seamless. Below are a few issues that we ran into:
+#### Rendering Issue 1:
+
+While trying to run MuJoCo we ran into an error twice relating to something involving `undefined symbol: __glewBindBuffer`, and the only fix we found (from a Reddit [thread](https://www.reddit.com/r/reinforcementlearning/comments/qay11a/how_to_use_mujoco_from_python3/)) was to install the following packages:
    
     sudo apt install curl git libgl1-mesa-dev libgl1-mesa-glx libglew-dev \
     libosmesa6-dev software-properties-common net-tools unzip vim \
     virtualenv wget xpra xserver-xorg-dev libglfw3-dev patchelf
        
+#### Rendering Issue 2:
+
+This issue is again about the [dm_control](https://github.com/deepmind/dm_control) installation of mujoco, you basically get an [error](https://github.com/deepmind/dm_control/issues/283) saying `mujoco.FatalError: gladLoadGL error`, and as described in the [aformentioned link](https://github.com/deepmind/dm_control/issues/283#issuecomment-1095490151), the solution is to find your dm_control package in your python installation, something like:
+
+```
+/home/username/anaconda3/envs/RLDucky/lib/python3.8/site-packages/dm_control/_render/glfw_renderer.py
+```
+
+and modify it to add some extra lines as described [here](https://github.com/deepmind/dm_control/issues/283#issuecomment-1095490151).
+
 ### Logging and Visualization (W&B)
 We use [Weights & Biases](https://wandb.ai/site) for logging and visualizing our run metrics. If you're unfamiliar with Weights & Biases, it is a powerful and convenient library to organize and track ML experiments. You can take look at their [quick-start guide](https://docs.wandb.ai/quickstart) and [documentation](https://docs.wandb.ai/), and you'll have to create an account to be able to view and use the dashboard, you can do so [here](https://wandb.ai/site). 
 
@@ -183,6 +197,10 @@ For this project, just specify your `wandb` username and project name in the [ma
 To run an experiment you can use commands in the following format:
 
     python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_duckietown     
+
+Here is another example of a command with shorter episodes:
+
+    python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_cheetah_run algorithm.test_frequency=2 overrides.sequence_length=10 overrides.batch_size=10
     
 You will see the output of your run in the terminal as well as in a results file created by Hydra located by default at `.exp/planet/default/duckietown_gym_env/yyyy.mm.dd/hhmmss`; you can change the root directory (`./exp`) by passing 
 `root_dir=path-to-your-dir`, and the experiment sub-folder (`default`) by
