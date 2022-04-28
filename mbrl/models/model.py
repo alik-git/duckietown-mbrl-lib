@@ -124,6 +124,9 @@ class Model(nn.Module, abc.ABC):
                 from strings to objects with metadata computed by the model
                 (e.g., reconstructions, entropy, etc.) that will be used for logging.
         """
+    # Changes to model class because Dreamer is different
+    def dreamer_update(self):
+        return None
 
     def update(
         self,
@@ -153,16 +156,19 @@ class Model(nn.Module, abc.ABC):
              (dict): any additional metadata dictionary computed by :meth:`loss`.
         """
         self.train()
-        optimizer.zero_grad()
+        # Changes to model class because Dreamer is different
+        # optimizer.zero_grad()
         loss, meta = self.loss(model_in, target)
-        loss.backward()
+        # loss.backward()
         if meta is not None:
             with torch.no_grad():
                 grad_norm = 0.0
                 for p in list(filter(lambda p: p.grad is not None, self.parameters())):
                     grad_norm += p.grad.data.norm(2).item() ** 2
                 meta["grad_norm"] = grad_norm
-        optimizer.step()
+        # optimizer.step()
+        # Changes to model class because Dreamer is different
+        loss = self.dreamer_update(loss)
         return loss.item(), meta
 
     def reset(

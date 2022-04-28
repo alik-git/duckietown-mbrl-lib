@@ -51,9 +51,11 @@ class Encoder(nn.Module):
         are written only for observations as rewards losses
         follow them. """
 
-    def __init__(self, 
+    def __init__(self,
+                    device,
                     depth : int = 32, 
-                    input_channels : Optional[int] = 3):
+                    input_channels : Optional[int] = 3
+                    ):
         super(Encoder, self).__init__()
         """
         Initialize the parameters of the Encoder.
@@ -73,6 +75,7 @@ class Encoder(nn.Module):
                 nn.Conv2d(self.depth * 4, self.depth * 8, 4, stride=2),
                 nn.ReLU(),
         )
+        self.encoder = self.encoder.to(device)
     
     def forward(self, x):
         """ Flatten the input observation [batch, horizon, 3, 64, 64]
@@ -92,7 +95,7 @@ class Decoder(nn.Module):
     the latent space model. It is mainly used
     in calculating losses.
     """
-    def __init__(self,
+    def __init__(self, device,
                     input_size : int,
                     depth: int = 32,
                     shape: Tuple[int] = (3, 64, 64)):
@@ -110,6 +113,7 @@ class Decoder(nn.Module):
             nn.ReLU(),
             nn.ConvTranspose2d(self.depth, self.shape[0], 6, stride=2),
         )
+        self.decoder = self.decoder.to(device)
     
     def forward(self, x):
         orig_shape = x.shape
@@ -127,6 +131,7 @@ class ActionDecoder(nn.Module):
     transformed by a custom TanhBijector.
     """
     def __init__(self,
+                 device,
                  input_size: int,
                  action_size: int,
                  layers: int,
@@ -155,6 +160,7 @@ class ActionDecoder(nn.Module):
             cur_size = self.units
         self.layers.append(nn.Linear(cur_size, 2 * action_size))
         self.model = nn.Sequential(*self.layers)
+        self.model = self.model.to(device)
     
     def forward(self, x):
         raw_init_std = np.log(np.exp(self.init_std) - 1)
@@ -177,6 +183,7 @@ class DenseDecoder(nn.Module):
     """
 
     def __init__(self,
+                 device,
                  input_size: int,
                  output_size: int,
                  layers: int,
@@ -206,6 +213,7 @@ class DenseDecoder(nn.Module):
             cur_size = units
         self.layers.append(nn.Linear(cur_size, output_size))
         self.model = nn.Sequential(*self.layers)
+        self.model = self.model.to(device)
 
     def forward(self, x):
         x = self.model(x)
@@ -230,6 +238,7 @@ class RSSM(nn.Module):
     """
 
     def __init__(self,
+                 device,
                  action_size: int,
                  embed_size: int,
                  stoch: int = 30,
@@ -249,15 +258,23 @@ class RSSM(nn.Module):
         self.deter_size = deter
         self.hidden_size = hidden
         self.act = nn.ELU
+        # self.act = self.act.to(device)
         self.obs1 = nn.Linear(embed_size + deter, hidden)
+        self.obs1 = self.obs1.to(device)
         self.obs2 = nn.Linear(hidden, 2 * stoch)
+        self.obs2 = self.obs2.to(device)
 
         self.cell = nn.GRUCell(self.hidden_size, hidden_size=self.deter_size)
+        self.cell = self.cell.to(device)
         self.img1 = nn.Linear(stoch + action_size, hidden)
+        self.img1 = self.img1.to(device)
         self.img2 = nn.Linear(deter, hidden)
+        self.img2 = self.img2.to(device)
         self.img3 = nn.Linear(hidden, 2 * stoch)
+        self.img3 = self.img3.to(device)
 
         self.softplus = nn.Softplus
+        # self.softplus = self.softplus.to(device)
         
         
 
@@ -404,30 +421,41 @@ class RSSM(nn.Module):
 # Dreamer Model
 class PLANet(nn.Module):
     def __init__(self, obs_space, action_space, num_outputs, model_config,
-                 name):
+                 name, device):
         super().__init__()
 
         nn.Module.__init__(self)
+        #         'dreamer_model': {
+        #             'obs_space': [3, 64, 64],
+        #             'num_outputs': 1,
+        #             'custom_model': 'DreamerModel',
+        #             'deter_size': 200,
+        #             'stoch_size': 30,
+        #             'depth_size': 32,
+        #             'hidden_size': 400,
+        #             'action_init_std': 5.0,
+        #             },
         self.depth = model_config["depth_size"]
         self.deter_size = model_config["deter_size"]
         self.stoch_size = model_config["stoch_size"]
         self.hidden_size = model_config["hidden_size"]
 
         self.action_size = action_space.shape[0]
+        self.device = device
 
-        self.encoder = Encoder(self.depth)
-        self.decoder = Decoder(
+        self.encoder = Encoder(device, self.depth)
+        self.decoder = Decoder(device,
             self.stoch_size + self.deter_size, depth=self.depth)
-        self.reward = DenseDecoder(self.stoch_size + self.deter_size, 1, 2,
+        self.reward = DenseDecoder(device, self.stoch_size + self.deter_size, 1, 2,
                                    self.hidden_size)
-        self.dynamics = RSSM(
+        self.dynamics = RSSM(device,
             self.action_size,
             32 * self.depth,
             stoch=self.stoch_size,
             deter=self.deter_size)
-        self.actor = ActionDecoder(self.stoch_size + self.deter_size,
+        self.actor = ActionDecoder(device, self.stoch_size + self.deter_size,
                                    self.action_size, 4, self.hidden_size)
-        self.value = DenseDecoder(self.stoch_size + self.deter_size, 1, 3,
+        self.value = DenseDecoder(device, self.stoch_size + self.deter_size, 1, 3,
                                   self.hidden_size)
         self.state = None
 
@@ -437,7 +465,8 @@ class PLANet(nn.Module):
         and policy to obtain action.
         """
         if state is None:
-            self.state = self.get_initial_state(batch_size=obs.shape[0])
+            # self.state = self.get_initial_state(batch_size=obs.shape[0])
+            self.state = self.get_initial_state(self.device)
         else:
             self.state = state
         post = self.state[:4]

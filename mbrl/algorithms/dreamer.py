@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 import os
 import pathlib
-from typing import List, Optional, Union
+from typing import List, Optional, Union, cast
 
 import gym
 import hydra
@@ -13,7 +13,7 @@ import omegaconf
 import torch
 
 import mbrl.constants
-import mbrl.third_party.pytorch_sac as pytorch_sac
+#import mbrl.third_party.pytorch_sac as pytorch_sac
 
 from mbrl.env.termination_fns import no_termination
 from mbrl.models import ModelEnv, ModelTrainer
@@ -24,10 +24,14 @@ from mbrl.util.common import (
     get_sequence_buffer_iterator,
     rollout_agent_trajectories,
 )
-from mbrl.planning.sac_wrapper import SACAgent
+#from mbrl.planning.sac_wrapper import SACAgent
+from mbrl.planning.dreamer_wrapper import DreamerAgent
 
 import wandb
 from gym.wrappers import Monitor
+
+
+# Original modified from PlaNet
 
 METRICS_LOG_FORMAT = [
     ("observations_loss", "OL", "float"),
@@ -50,6 +54,7 @@ def train(
         work_dir = os.getcwd()
     work_dir = pathlib.Path(work_dir)
     print(f"Results will be saved at {work_dir}.")
+    wandb.config.update({"work_dir": str(work_dir)})
 
     if silent:
         logger = None
@@ -91,17 +96,29 @@ def train(
 
     # Create PlaNet model
     cfg.dynamics_model.action_size = env.action_space.shape[0]
+
+    # Use hydra to create a dreamer model (really uses PlaNet model)
     dreamer = hydra.utils.instantiate(cfg.dynamics_model)
+    # Give it the real gym env to model
+    dreamer.setGymEnv(env)
+
+    # adam optim that takes into account all 3 network losses
+    # actor, critic, model
+    dreamer_optim = dreamer.configure_optimizers()
     assert isinstance(dreamer, mbrl.models.DreamerModel)
     model_env = ModelEnv(env, dreamer, no_termination, generator=rng)
     trainer = ModelTrainer(dreamer, logger=logger, optim_lr=1e-3, optim_eps=1e-4)
 
+    # Some thoughts on how we were approaching this problem
     # Create Dreamer Agent (Action and Value model), are these needed for this to operate properly?
     # This agent rolls outs trajectories using ModelEnv, which uses planet.sample()
     # to simulate the trajectories from the prior transition model
     # The starting point for trajectories is conditioned on the latest observation,
     # for which we use planet.update_posterior() after each environment step
-    agent = create_trajectory_optim_agent_for_model(model_env, cfg.algorithm.agent)
+    #the CEM way
+    # agent = create_trajectory_optim_agent_for_model(model_env, cfg.algorithm.agent)
+    #the SAC/Dreamer way
+    # agent = different_or_same_function(model_env, cfg.algorithm.agent)
     
 
     # Callback and containers to accumulate training statistics and average over batch
@@ -165,25 +182,30 @@ def train(
         # Collect one episode of data
         episode_reward = 0.0
         obs = curr_env.reset()
+        # want to do 
         #agent.reset()
-        dreamer.reset_alg()
+        dreamer.reset_world_model(device=cfg.device)
         action = None
         done = False
         while not done:
+            # want to do 
             #dreamer.update(...)
             #   planet.update(..)
             #   actor_net.update(..)
             #   value_net.updare(..)
-            dreamer.update_alg(obs, action=action, rng=rng)
+            # dreamer.update_alg(obs, action=action, rng=rng)
+            
             action_noise = (
                 0
                 if is_test_episode(episode)
                 else cfg.overrides.action_noise_std
                      * np_rng.standard_normal(curr_env.action_space.shape[0])
             )
-            action, _ = dreamer.policy(obs)
+            # want to do (kinda)
+            # action, _ = dreamer.policy(obs)
+            action, _,_, = dreamer.action_sampler_fn(obs, None, 1.0)
             action = action + action_noise
-            #action = agent.act(obs) + action_noise
+            # action = agent.act(obs) + action_noise
             action = np.clip(action, -1.0, 1.0)  # to account for the noise
             next_obs, reward, done, info = curr_env.step(action)
             replay_buffer.add(obs, action, next_obs, reward, done)
@@ -208,6 +230,12 @@ def train(
                 "env_step": step,
             }
         )
+        avg_ep_reward = total_rewards / (episode+1)
+        wandb.log({'average_episode_reward': avg_ep_reward, "global_episode": episode})
 
     # returns average episode reward (e.g., to use for tuning learning curves)
-    return total_rewards / cfg.algorithm.num_episodes
+    avg_ep_reward = total_rewards / cfg.algorithm.num_episodes
+    wandb.log({'average_episode_reward': avg_ep_reward, "global_episode": episode})
+    return avg_ep_reward
+
+

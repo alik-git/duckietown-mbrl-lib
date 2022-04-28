@@ -9,6 +9,7 @@ from .model_env import ModelEnv
 from .model_trainer import ModelTrainer
 from .one_dim_tr_model import OneDTransitionRewardModel
 from .planet import PlaNetModel
+from .dreamer import DreamerModel
 from .util import (
     Conv2dDecoder,
     Conv2dEncoder,

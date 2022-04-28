@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from typing import Tuple, Any, Union, Optional, Dict
+import gym
 TensorType = Any
 
 class DMControlSuiteEnv:
@@ -87,7 +88,7 @@ class Episode(object):
                                                         ((2, 0, 1))))
         self.t = 1
         self.obs = [obs]
-        self.action = [torch.FloatTensor(torch.zeros(1, self.action_space))]
+        self.action = [torch.FloatTensor(torch.zeros(1, self.action_space)).squeeze()]
         self.reward = [0]
         self.done = [False]
     
@@ -110,7 +111,7 @@ class Episode(object):
                                                         ((2, 0, 1))))
         self.t = 1
         self.obs = [obs]
-        self.action = [torch.FloatTensor(torch.zeros(1, self.action_space))]
+        self.action = [torch.FloatTensor(torch.zeros(1, self.action_space)).squeeze()]
         self.reward = [0]
         self.done = [False]
     

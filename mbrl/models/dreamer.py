@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from mbrl.types import TensorType, TransitionBatch
 
 from .model import Model
-#from .util import Conv2dDecoder, Conv2dEncoder, to_tensor #From mbrl-lib.PlaNet
+from .util import Conv2dDecoder, Conv2dEncoder, to_tensor #From mbrl-lib.PlaNet
 
 from PIL import Image
 
@@ -44,34 +44,141 @@ class ExperienceSourceDataset(IterableDataset):
         iterator = self.generate_batch
         return iterator
 
+# class DreamerModel(nn.Module):
 class DreamerModel(Model):
-    def __init__(self):  #config is locally stored for now
-        config = {'name': 'Dreamer', 'env': 'quadruped_run', 'seed': 42, 'ckpt_callback': {'save_top_k': 2, 'mode': 'min', 'monitor': 'loss', 'save_on_train_epoch_end': True, 'save_last': True, 'trainer_params': None, 'default_root_dir': 'None', 'gpus': 1, 'gradient_clip_val': 100.0, 'val_check_interval': 5, 'max_epochs': 1000}, 'dreamer': {'td_model_lr': 0.0005, 'actor_lr': 8e-05, 'critic_lr': 8e-05, 'default_lr': 0.0005, 'weight_decay': 1e-06, 'batch_size': 50, 'batch_length': 50, 'length': 50, 'prefill_timesteps': 5000, 'explore_noise': 0.3, 'max_episode_length': 1000, 'collect_interval': 100, 'max_experience_size': 1000, 'save_episodes': False, 'discount': 0.99, 'lambda': 0.95, 'clip_actions': False, 'horizon': 1000, 'imagine_horizon': 15, 'free_nats': 3.0, 'kl_coeff': 1.0, 'dreamer_model': {'obs_space': [3, 64, 64], 'num_outputs': 1, 'custom_model': 'DreamerModel', 'deter_size': 200, 'stoch_size': 30, 'depth_size': 32, 'hidden_size': 400, 'action_init_std': 5.0}, 'env_config': {'action_repeat': 2}}}
-      
-        self.config = config
-        self.env = DMControlSuiteEnv(name=self.config["env"], 
-                                max_episode_length=self.config["dreamer"]["max_episode_length"],
-                                action_repeat=self.config["dreamer"]["env_config"]["action_repeat"])
-        sample_action_space = np.zeros(self.env.action_space.shape)
-        #self.model = PlaNetModel #try this when we get the functions mapped properly
-        self.model = PLANet(self.config["dreamer"]["dreamer_model"]['obs_space'], 
-                            sample_action_space, 
-                            self.config["dreamer"]["dreamer_model"]['num_outputs'], 
-                            self.config["dreamer"]["dreamer_model"],
-                            self.config['name'])
-        self.episodes = []
-        self.length = self.config["dreamer"]['length']
-        self.timesteps = 0
-        self._max_experience_size = self.config["dreamer"]['max_experience_size']
-        self._action_repeat = self.config["dreamer"]["env_config"]["action_repeat"]
-        self._prefill_timesteps = self.config["dreamer"]["prefill_timesteps"]
-        self._max_episode_length = self.config["dreamer"]["max_episode_length"]
+    
+    def __init__(
+        self,
+        obs_shape,
+        action_size,
+        hidden_size_fcs,
+        depth_size,
+        stoch_size,
+        deter_size,
+        device: Union[str, torch.device],
+        min_std,
+    ):
+        # This config is needed for now as we figure out 
+        # what parameters we need to run dreamer
+        # we get values from it from time to time
+        
+        outside_config = {
+            'name': 'Dreamer',
+            'env': 'quadruped_run',
+            'seed': 42,
+            'ckpt_callback': {
+                'save_top_k': 2,
+                'mode': 'min',
+                'monitor': 'loss',
+                'save_on_train_epoch_end': True,
+                'save_last': True,
+                'trainer_params': None,
+                'default_root_dir': 'None',
+                'gpus': 1,
+                'gradient_clip_val': 100.0,
+                'val_check_interval': 5,
+                'max_epochs': 1000,
+                },
+            'dreamer': {
+                'td_model_lr': 0.0005,
+                'actor_lr': 8e-05,
+                'critic_lr': 8e-05,
+                'default_lr': 0.0005,
+                'weight_decay': 1e-06,
+                'batch_size': 50,
+                'batch_length': 50,
+                'length': 50,
+                'prefill_timesteps': 5000,
+                'explore_noise': 0.3,
+                'max_episode_length': 1000,
+                'collect_interval': 100,
+                'max_experience_size': 1000,
+                'save_episodes': False,
+                'discount': 0.99,
+                'lambda': 0.95,
+                'clip_actions': False,
+                'horizon': 1000,
+                'imagine_horizon': 15,
+                'free_nats': 3.0,
+                'kl_coeff': 1.0,
+                'dreamer_model': {
+                    'obs_space': [3, 64, 64],
+                    'num_outputs': 1,
+                    'custom_model': 'DreamerModel',
+                    'deter_size': 200,
+                    'stoch_size': 30,
+                    'depth_size': 32,
+                    'hidden_size': 400,
+                    'action_init_std': 5.0,
+                    },
+                'env_config': {'action_repeat': 2},
+                },
+            }
 
-        self.explore = self.config["dreamer"]['explore_noise']
-        self.batch_size = self.config["dreamer"]["batch_size"]
+        super().__init__(device)
+        self.outside_config = outside_config
+        
+        self.obs_shape = obs_shape
+        self.hidden_size_fcs = hidden_size_fcs
+        self.device = device
+        self.num_outputs = 1
+        
+        self.model_config = {
+            "hidden_size": self.hidden_size_fcs,
+            'deter_size': deter_size,
+            'stoch_size': stoch_size,
+            'depth_size': depth_size,
+            'action_init_std': min_std,
+            }
+        self.name = 'Dreamer'
+        
+
+    def setGymEnv(self, env):
+        self.env = env
+        sample_action_space = np.zeros(self.env.action_space.shape)
+        # In the future we may want to use the MBRL-Lib 
+        # implmentation of Planet here
+
+        # self.model = PlaNetModel #try this when we get the functions mapped properly
+
+        self.model = PLANet(obs_space= self.obs_shape,
+                            action_space= sample_action_space,
+                            num_outputs= self.num_outputs,
+                            model_config= self.model_config,
+                            name = self.name,
+                            device = self.device
+                            )
+        self.episodes = []
+        self.length = self.outside_config["dreamer"]['length']
+        self.timesteps = 0
+        self._max_experience_size = self.outside_config["dreamer"]['max_experience_size']
+        self._action_repeat = self.outside_config["dreamer"]["env_config"]["action_repeat"]
+        self._prefill_timesteps = self.outside_config["dreamer"]["prefill_timesteps"]
+        self._max_episode_length = self.outside_config["dreamer"]["max_episode_length"]
+
+        self.explore = self.outside_config["dreamer"]['explore_noise']
+        self.batch_size = self.outside_config["dreamer"]["batch_size"]
         self.action_space = sample_action_space.shape[0]
+        self.imagine_horizon = self.outside_config['dreamer']["imagine_horizon"]
         prefill_episodes = self._prefill_train_batch()
         self._add(prefill_episodes)
+
+    # functions we added to make this work with MBRL-Lib
+    def reset_world_model(self, device=None):
+        self.model.get_initial_state(device=device)
+        
+    def _process_pixel_obs(self, obs: torch.Tensor) -> torch.Tensor:
+        return to_tensor(obs).float().to(self.device) / 256.0 - 0.5
+    
+    def _process_batch(
+        self, batch: TransitionBatch, as_float: bool = True, pixel_obs: bool = False
+    ) -> Tuple[torch.Tensor, ...]:
+        # `obs` is a sequence, so `next_obs` is not necessary
+        # sequence iterator samples full sequences, so `dones` not necessary either
+        obs, action, _, rewards, _ = super()._process_batch(batch, as_float=as_float)
+        if pixel_obs:
+            obs = self._process_pixel_obs(obs)
+        return obs, action, rewards
 
     def compute_dreamer_loss(self,
                          obs,
@@ -170,6 +277,55 @@ class DreamerModel(Model):
             return_dict["log_gif"] = self._postprocess_gif(log_gif)
         return return_dict
 
+    # Loss function for dreamer 
+    # Different from Planet cause more networks
+    def loss(
+            self,
+            batch: TransitionBatch,
+            target: Optional[torch.Tensor] = None,
+            reduce: bool = True,
+        ) -> Tuple[torch.Tensor, Dict[str, Any]]:
+            """Computes the Dreamer loss given a batch of transitions.
+
+            """
+            obs, action, rewards = self._process_batch(batch, pixel_obs=True)
+            
+            return_dict = self.compute_dreamer_loss(obs, action, rewards, self.imagine_horizon)
+
+            dreamer_obs_loss = return_dict["image_loss"]
+            dreamer_reward_loss = return_dict["reward_loss"]
+            dreamer_kl_loss = return_dict["divergence"]
+            
+            meta = {
+                "reconstruction": None,
+                "observations_loss": dreamer_obs_loss.detach().mean().item(),
+                "reward_loss": dreamer_reward_loss.detach().mean().item(),
+                "kl_loss": dreamer_kl_loss.detach().mean().item(),
+            }
+            
+            return return_dict["model_loss"], meta
+
+    def eval_score(
+        self, batch: TransitionBatch, target: Optional[torch.Tensor] = None
+    ) -> Tuple[torch.Tensor, Dict[str, Any]]:
+        """Computes an evaluation score for the model over the given input/target.
+
+        This is equivalent to calling loss(batch, reduce=False)`.
+        """
+        with torch.no_grad():
+            return self.loss(batch, reduce=False)
+
+    # again, Dreamer update is fundamentally different from
+    # from planet update, which causes problems when trying
+    # to integrate it into this library
+    def dreamer_update(self, dreamer_loss):
+        
+        self.dreamer_optim.zero_grad()
+        dreamer_loss.backward()
+        self.dreamer_optim.step()
+
+        return dreamer_loss
+
     def dreamer_loss(self, train_batch):
         """ calculates dreamer loss."""
 
@@ -181,11 +337,11 @@ class DreamerModel(Model):
             train_batch["obs"],
             train_batch["actions"],
             train_batch["rewards"],
-            self.config["dreamer"]["imagine_horizon"],
-            self.config["dreamer"]["discount"],
-            self.config["dreamer"]["lambda"],
-            self.config["dreamer"]["kl_coeff"],
-            self.config["dreamer"]["free_nats"],
+            self.outside_config["dreamer"]["imagine_horizon"],
+            self.outside_config["dreamer"]["discount"],
+            self.outside_config["dreamer"]["lambda"],
+            self.outside_config["dreamer"]["kl_coeff"],
+            self.outside_config["dreamer"]["free_nats"],
             log_gif,
         )
 
@@ -203,6 +359,7 @@ class DreamerModel(Model):
         while self.timesteps < self._prefill_timesteps: 
             action, logp, state = self.prefill_action_sampler_fn(None, 
                                                             self.timesteps)
+            action = action.squeeze()
             obs, reward, done, _ = self.env.step(action.numpy())
             episode.append((obs, action, reward, done))
             self.timesteps += self._action_repeat       
@@ -264,7 +421,7 @@ class DreamerModel(Model):
                                         self._max_experience_size
             self.episodes = self.episodes[remove_episode_index:]
         
-        if self.config["dreamer"]["save_episodes"] and\
+        if self.outside_config["dreamer"]["save_episodes"] and\
             self.trainer is not None and self.trainer.log_dir is not None:
             save_episodes = np.array(self.episodes)
             if not os.path.exists(f'{self.trainer.log_dir}/episodes'):
@@ -297,7 +454,7 @@ class DreamerModel(Model):
         return total_batch
     
     def _train_batch(self, batch_size):
-        for _ in range(self.config["dreamer"]["collect_interval"]):
+        for _ in range(self.outside_config["dreamer"]["collect_interval"]):
             total_batch = self._sample(batch_size)
             def return_batch(i):
                 return (total_batch["obs"][i] / 255.0 - 0.5),\
@@ -364,7 +521,7 @@ class DreamerModel(Model):
             self.log('avg_reward_collection', torch.mean(data_dict['reward']))
 
         if self.current_epoch > 0 and \
-                self.current_epoch % self.config["trainer_params"]["val_check_interval"] == 0:
+                self.current_epoch % self.outside_config["trainer_params"]["val_check_interval"] == 0:
             self.model.eval()
             episode_reward = self._test()
             self.log('avg_reward_test', episode_reward)
@@ -396,14 +553,16 @@ class DreamerModel(Model):
         dynamics_weights = list(self.model.dynamics.parameters())
         actor_weights = list(self.model.actor.parameters())
         critic_weights = list(self.model.value.parameters())
+        
         model_opt = Adam(
             [
             {'params': encoder_weights + decoder_weights + reward_weights + dynamics_weights,
-            'lr':self.config["dreamer"]["td_model_lr"]},
-            {'params':actor_weights, 'lr':self.config["dreamer"]["actor_lr"]},
-            {'params':critic_weights, 'lr':self.config["dreamer"]["critic_lr"]}],
-            lr=self.config["dreamer"]["default_lr"],
-            weight_decay=self.config["dreamer"]["weight_decay"])
+            'lr':self.outside_config["dreamer"]["td_model_lr"]},
+            {'params':actor_weights, 'lr':self.outside_config["dreamer"]["actor_lr"]},
+            {'params':critic_weights, 'lr':self.outside_config["dreamer"]["critic_lr"]}],
+            lr=self.outside_config["dreamer"]["default_lr"],
+            weight_decay=self.outside_config["dreamer"]["weight_decay"])
+        self.dreamer_optim = model_opt
         return model_opt
     
     def _postprocess_gif(self, gif: np.ndarray):
