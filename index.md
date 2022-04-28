@@ -162,20 +162,20 @@ This helps Dreamer do better with longer-term predictions of the world, over sho
 
 ### Dreamer training
 
-For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of $$\epsilon = 1.0 \text{ and } 0.3$$ like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $$latents = encoder_\theta(img)$$ that get passed to the world model (RSSM) to get the posterior and prior $with respect to latents and also an initial state and initial action shown as: $$s_0 = dynamics(img.shape), a_0$$. The RSSM returns the posterior $post$ and prior $prior$ by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we receive $$posterior, prior = RSSM_\theta(latent, s_0, a0)$$ from the dynamics model. We then get features from the posterior $$features = dynamics(posterior)$$and use that for the image prediction, reward prediction
+For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of $$\epsilon = 1.0 \text{ and } 0.3$$ like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $$latents = encoder_\theta(img)$$ that get passed to the world model (RSSM) to get the posterior and prior with respect to latents and also an initial state and initial action shown as: $$s_0 = dynamics(img.shape), a_0$$. The RSSM returns the posterior and prior by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we receive $$posterior, prior = RSSM_\theta(latent, s_0, a0)$$ from the dynamics model. We then get features from the posterior $$features = dynamics(posterior)$$and use that for the image prediction, reward prediction
 
-$$rewpred = DenseRewNet_\theta(features) \\ imgpred = decoder_\theta(features)$$
+$$pred_{rew} = DenseRewNet_\theta(features) \\ pred_{img} = decoder_\theta(features)$$
 
  from the reward model defined by a dense network. We use these networks for losses from the image and reward, shown here (using probabilities from a softmax):
  
- $$imgloss = -\frac{1}{N}\sum \log(rewpredprob(observation) \\
-rewloss = -\frac{1}{N}\sum \log(imgpredprob(rew)$$
+ $$loss_{img} = -\frac{1}{N}\sum \log(prob(pred_{rew} (observation)) \\
+loss_{rew} = -\frac{1}{N}\sum \log(prob(pred_{img} (rew))$$
 
-  and pass the prior distribution and posterior distribution to a KL divergence loss, $$KLloss = -\frac{1}{N}\sum KL(posterior \| prior)$$ 
+  and pass the prior distribution and posterior distribution to a KL divergence loss, $$loss_{KL} = -\frac{1}{N}\sum KL(posterior \| prior)$$ 
 
 and finally combine image loss, reward loss, and KL loss with a KL coeff to get the overall model loss. 
 
-$$loss_{model} = rewloss + imgloss + KLloss * KD_const$$
+$$loss_{model} = loss_{rew} + loss_{img} + loss_{KL} * KLdiv_{const}$$
 
 
 The actor loss is the loss from the actor network, which is described in the following:
@@ -235,8 +235,13 @@ Embed for wandb results:
 </div> -->
 
 <div>
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="height:1024px;width:100%"> </iframe>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
 </div>
+
+
+<!-- <div>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:400px;width:100%"> </iframe>
+</div> -->
 
 
 ## Conclusions
