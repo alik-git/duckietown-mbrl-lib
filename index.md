@@ -166,7 +166,7 @@ For training the first version of the Dreamer prototype, we used Cheetah the env
 
 $$rewpred = DenseRewNet_\theta(features) \\ imgpred = decoder_\theta(features)$$
 
- from the reward model defined by a dense network. We use these networks for losses from the image and reward, shown here:
+ from the reward model defined by a dense network. We use these networks for losses from the image and reward, shown here (using probabilities from a softmax):
  
  $$imgloss = -\frac{1}{N}\sum \log(rewpredprob(observation) \\
 rewloss = -\frac{1}{N}\sum \log(imgpredprob(rew)$$
@@ -178,8 +178,9 @@ and finally combine image loss, reward loss, and KL loss with a KL coeff to get 
 $$loss_{model} = rewloss + imgloss + KLloss * KD_const$$
 
 
+The actor loss is the loss from the actor network, which is described in the following:
 
-The actor loss is the loss from the actor network, which is a 
+
 
 ### Dreamer evaluation 
 
@@ -229,7 +230,14 @@ The actor loss is the loss from the actor network, which is a
 
 Embed for wandb results:
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:1024px;width:100%">
+<!-- <div>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:1024px;width:100%"> </iframe>
+</div> -->
+
+<div>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" > </iframe>
+</div>
+
 
 ## Conclusions
 
