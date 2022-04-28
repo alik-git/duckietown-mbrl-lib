@@ -235,7 +235,7 @@ Embed for wandb results:
 </div> -->
 
 <div>
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" > </iframe>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="height:1024px;width:100%"> </iframe>
 </div>
 
 
