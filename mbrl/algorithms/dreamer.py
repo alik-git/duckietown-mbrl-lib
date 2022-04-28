@@ -171,7 +171,9 @@ def train(
         replay_buffer.save(work_dir)
         metrics = get_metrics_and_clear_metric_containers()
         logger.log_data("metrics", metrics)
-        wandb.log(metrics)
+        wandb_metrics = metrics
+        wandb_metrics["global_episode"] = episode
+        wandb.log(wandb_metrics)
 
         if is_test_episode(episode):
             print("AHH ITS A TEST EPISODE!!!")
@@ -236,6 +238,7 @@ def train(
                 "episode_reward": episode_reward * is_test_episode(episode),
                 "train_episode_reward": episode_reward * (1 - is_test_episode(episode)),
                 "env_step": step,
+                "global_episode": episode
             }
         )
         avg_ep_reward = total_rewards / (episode+1)

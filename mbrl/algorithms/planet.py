@@ -156,9 +156,11 @@ def train(
         planet.save(work_dir / "planet.pth")
         replay_buffer.save(work_dir)
         metrics = get_metrics_and_clear_metric_containers()
+        wandb_metrics = metrics
+        wandb_metrics['global_episode'] = episode
         logger.log_data("metrics", metrics)
-        metrics['global_episode'] = episode
-        wandb.log(metrics)
+        
+        wandb.log(wandb_metrics)
         
         if is_test_episode(episode):
             print(f"Reached Test Episode! Episode: {episode}")
