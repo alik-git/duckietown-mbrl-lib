@@ -222,9 +222,7 @@ Having trouble with Pages? Check out our [documentation](https://docs.github.com
 \icmlauthor{Paul Crouther}{equal,udem,mila}
 % \icmlauthor{Brahim Ben Malek}{equal,udem}
 \end{icmlauthorlist}
-% \centerline{{\fontfamily{qcr}\selectfont
-% https://github.com/MikeS96/bayesbb
-% }}
+
 
 
 \icmlaffiliation{udem}{Université de Montréal, Montréal, Canada}
