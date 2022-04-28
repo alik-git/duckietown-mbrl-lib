@@ -142,21 +142,42 @@ The largest advantage that model based approaches offer is their superior sample
 
 ### Dreamer
 
-Given that the MBRL-lib does not include a Dreamer implementation, but rather the PlaNet model, it makes sense to reuse the recurrent state model from the PlaNet implementation as a world model for Dreamer. However, there are structural components that are missing. For example, in departure from PlaNet, rather than a CEM for the best action sequence under the model for planning, Dreamer uses a dense action network parameterized by $\phi$ and the dense value network parameterized by $\psi$. For the action model with imagined actions, the authors use a tanh-transformed Gaussian \citep{SAC} output for the action network, which provides a deterministically-dependent mean and variance of the state through a reparameterization \citep{kingma2013auto} \citep{rezende2014stochastic} of the stochastic node, adding noise $\epsilon$ back in afterwards (to be inferred).
+Given that the MBRL-lib does not include a Dreamer implementation, but rather the PlaNet model, it makes sense to reuse the recurrent state model from the PlaNet implementation as a world model for Dreamer. However, there are structural components that are missing. For example, in departure from PlaNet, rather than a CEM for the best action sequence under the model for planning, Dreamer uses a dense action network parameterized by phi and the dense value network parameterized by psi. 
+
+$$a_\tau = ActorNetwork_\phi(s_\tau) \\ v_\phi(s_\tau) = DenseValueNetwork_\psi(s_\tau)$$
+
+For the action model with imagined actions, the authors use a tanh-transformed Gaussian \citep{SAC} output for the action network, which provides a deterministically-dependent mean and variance of the state through a reparameterization \citep{kingma2013auto} \citep{rezende2014stochastic} of the stochastic node, adding noise $\epsilon$ back in afterwards (to be inferred).
 
 $$a_\tau = \tanh(\mu_\phi(s_\tau) + \sigma_\phi(s_\tau) \epsilon), \qquad \epsilon \sim \mathcal{N}(0, \mathbb{I})$$
 
-This formalizes the deterministic output of the action network returns a mean $\mu_\phi(s_\tau)$ and we learn the variance of the noise $\sigma_\phi(s_\tau)$ with this reparameterization, inferring from our normal noise $\epsilon$, to represent our stochastic model.
+This formalizes the deterministic output of the action network returns a mean mu and we learn the variance of the noise sigma with this reparameterization, inferring from our normal noise epsilon, to represent our stochastic model.
 
-Then the value network consists of imagined value estimates $V_R(s_\tau) = \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} r_n))$ which is the sum of rewards until the end of a horizon, then using values $v_\psi(s_\tau)$ then computes $V^{k}_N(s_\tau) = \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{h = \min(\tau+k, t+H)-1} \gamma^{n-\tau}r_n + \gamma^{h-\tau} v_\psi(s_h)))$ as a estimate of rewards beyond $k$ steps with the learned value model, and $V_\lambda(s_\tau)$ which is a exponentially weighted average of $V^{k}_N(s_\tau)$ at different values of k, shown in the following. 
+$$\mu_\phi(s_\tau), \sigma_\phi(s_\tau), \epsilon$$
+
+Then the value network consists of imagined value estimates $$V_R(s_\tau) = \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} r_n))$$ which is the sum of rewards until the end of a horizon, then using values $$v_\psi(s_\tau)$$ then computes $$V^{k}_N(s_\tau) = \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{h = \min(\tau+k, t+H)-1} \gamma^{n-\tau}r_n + \gamma^{h-\tau} v_\psi(s_h)))$$ as a estimate of rewards beyond $k$ steps with the learned value model, and $$V_\lambda(s_\tau)$$ which is a exponentially weighted average of $$V^{k}_N(s_\tau)$$ at different values of k, shown in the following. 
 
 $$V_\lambda(s_\tau) = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
 
-This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned shown in \ref{eq:1}, with the value network being updated with the gradient  $\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}\\mid v_\psi(s_\tau) - V_\lambda(s_\tau))\\mid ^2$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
+This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $$\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned shown in \ref{eq:1}, with the value network being updated with the gradient  $$\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}\| v_\psi(s_\tau) - V_\lambda(s_\tau))\| ^2$$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
 
 ### Dreamer training
 
-For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of 1.0 and 0.3 like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $latents = encoder_\theta(img)$ that get passed to the world model (RSSM) to get the posterior and prior $with respect to latents and also an initial state $s_0 = dynamics(img.shape)$ and initial action $a_0$. The RSSM returns the posterior $post$ and prior $prior$ by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we $posterior, prior = RSSM(latent, s_0, a0)$ We then get features from the posterior and use that for the image prediction, reward prediction from the reward model defined by a dense network. We use these networks for losses from the image and reward, and pass the prior distribution and posterior distribution to a KL divergence loss, and finally combine image loss, reward loss, and KL loss with a KL coeff to get the overall model loss. 
+For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of $$\epsilon = 1.0 \text{ and } 0.3$$ like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $$latents = encoder_\theta(img)$$ that get passed to the world model (RSSM) to get the posterior and prior $with respect to latents and also an initial state and initial action shown as: $$s_0 = dynamics(img.shape), a_0$$. The RSSM returns the posterior $post$ and prior $prior$ by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we receive $$posterior, prior = RSSM_\theta(latent, s_0, a0)$$ from the dynamics model. We then get features from the posterior $$features = dynamics(posterior)$$and use that for the image prediction, reward prediction
+
+$$rewpred = DenseRewNet_\theta(features) \\ imgpred = decoder_\theta(features)$$
+
+ from the reward model defined by a dense network. We use these networks for losses from the image and reward, shown here:
+ 
+ $$imgloss = -\frac{1}{N}\sum \log(rewpredprob(observation) \\
+rewloss = -\frac{1}{N}\sum \log(imgpredprob(rew)$$
+
+  and pass the prior distribution and posterior distribution to a KL divergence loss, $$KLloss = -\frac{1}{N}\sum KL(posterior \| prior)$$ 
+
+and finally combine image loss, reward loss, and KL loss with a KL coeff to get the overall model loss. 
+
+$$loss_{model} = rewloss + imgloss + KLloss * KD_const$$
+
+
 
 The actor loss is the loss from the actor network, which is a 
 
@@ -219,7 +240,7 @@ In this work we implemented the Dreamer algorithm for the MBRL-Lib library, and 
 
 Our results indicate that there certainly is potential for model-based approaches to perform well in Gym-Duckietown, but there are certain barriers to overcome, mainly a better reward function is needed, and higher capacity models that plan much further into the future.
 
-We learned a lot about how RL and MBRL algorithms are structured, how the distinction between model-based and model free can start to blur for algorithms like Dreamer. 
+We learned a lot about how RL and MBRL algorithms are structured, how the distinction between model-based and model free can start to blur for algorithms like Dreamer. We learned how difficult it can be to design a reward function that enables learning to take place, and how long this process can take when each tiny modification requires hours of training to evaluate.
 
 If we were to start over, we would ask for help earlier, lots of people know much more about Duckietown than we do and were very helpful, we imagine it is the same for MBRL-Lib, so we would have reached out to the authors earlier. 
 
