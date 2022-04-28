@@ -144,7 +144,7 @@ The largest advantage that model based approaches offer is their superior sample
 
 Given that the MBRL-lib does not include a Dreamer implementation, but rather the PlaNet model, it makes sense to reuse the recurrent state model from the PlaNet implementation as a world model for Dreamer. However, there are structural components that are missing. For example, in departure from PlaNet, rather than a CEM for the best action sequence under the model for planning, Dreamer uses a dense action network parameterized by phi and the dense value network parameterized by psi. 
 
-$$a_\tau = ActorNetwork_\phi(s_\tau) \\ v_\phi(s_\tau) = DenseValueNetwork_\psi(s_\tau)$$
+$$a_\tau = ActorNetwork_\phi(s_\tau) \sim q_\phi(a_\tau \mid s_\tau)  \\ v_\phi(s_\tau)  = DenseValueNetwork_\psi(s_\tau) \approx \mathbb{E}_{q(\cdot \mid s_\tau)} \left( \sum_{\tau = t}^{t+H} \gamma^{\tau - t}r_\tau \right)$$
 
 For the action model with imagined actions, the authors use a tanh-transformed Gaussian \citep{SAC} output for the action network, which provides a deterministically-dependent mean and variance of the state through a reparameterization \citep{kingma2013auto} \citep{rezende2014stochastic} of the stochastic node, adding noise $\epsilon$ back in afterwards (to be inferred).
 
@@ -164,7 +164,7 @@ This helps Dreamer do better with longer-term predictions of the world, over sho
 
 ### Dreamer training
 
-For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of $$\epsilon = 1.0 \text{ and } 0.3$$ like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $$latents = encoder_\theta(img)$$ that get passed to the world model (RSSM) to get the posterior and prior with respect to latents and also an initial state and initial action shown as: $$s_0 = dynamics(img.shape), a_0$$. The RSSM returns the posterior and prior by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we receive $$posterior, prior = RSSM_\theta(latent, s_0, a_0)$$ from the dynamics model. We then get features from the posterior $$features = dynamics(posterior)$$and use that for the image prediction, reward prediction
+For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of $$\epsilon = 1.0 \text{ and } 0.3$$ like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $$latents = encoder_\theta(img)$$ that get passed to the world model (RSSM) to get the posterior and prior with respect to latents and also an initial state and initial action shown as: $$s_0 = dynamics(img.shape), a_0$$. The RSSM returns the posterior and prior by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we receive $$posterior, prior = RSSM_\theta(latents, s_0, a_0)$$ from the dynamics model. We then get features from the posterior $$features = dynamics(posterior)$$and use that for the image prediction, reward prediction
 
 $$pred_{rew} = DenseRewNet_\theta(features) \\ pred_{img} = decoder_\theta(features)$$
 
@@ -182,6 +182,8 @@ $$loss_{model} = loss_{rew} + loss_{img} + loss_{KL} * KLdiv_{const}$$
 
 The actor loss is the loss from the actor network, which is described in the following:
 
+$$continueprobability = \gamma * ones(rew) \\
+return = $$
 
 
 ### Dreamer evaluation 
@@ -230,23 +232,22 @@ The actor loss is the loss from the actor network, which is described in the fol
     Provide something to help me give feedback on what I would do to improve this method or debug issues.
 
 
+PlaNet learning lane following on Duckietown:
+
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-83--VmlldzoxOTE2MDQz?highlightShare" style="border:none;height:600px;width:100%"> </iframe>
+
+
 Embed for wandb results:
 
 <!-- <div>
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:1024px;width:100%"> </iframe>
 </div> -->
 
-<div>
+
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
-</div>
 
-<div>
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:500px;width:120%"> </iframe>
-</div>
 
-<div>
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz" style="border:none;height:500px;width:100%"> </iframe>
-</div>
+
 
 
 <!-- <div>
