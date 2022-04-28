@@ -185,7 +185,7 @@ $$loss_{model} = loss_{rew} + loss_{img} + loss_{KL} * KLdiv_{const}$$
 The actor loss is the loss from the actor network, which is described in the following:
 
 $$continueprobability = \gamma * ones(rew) \\
-return = $$
+\lambda-returns = (1 - \lambda)\sum_\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
 
 
 ### Dreamer evaluation 
@@ -251,6 +251,10 @@ Dreamer learning to model Duckietown:
 
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
+
+Dreamer trying to do ... something:
+
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-06--VmlldzoxOTE2MDc3?highlightShare" style="border:none;height:1024px;width:100%"> </iframe>
 
 
 
