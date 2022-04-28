@@ -18,7 +18,7 @@ ___
 
 Model-based reinforcement learning (MBRL) algorithms have various sub-components that each need to be carefully selected and tuned, which makes it difficult to quickly apply existing models/approaches to new tasks. In this work, we aim to integrate the Dreamer algoithm into an existing popular MBRL toolbox, and tune the Dreamer-v1 and PlaNet algorithms to the Gym-Duckietown environment. We also provide trained models and code to to use as a baseline for further development. Additionally, we propose an improved reward function for RL training in Gym-Duckietown, with code to allow easy analysis and evaluation of RL models and reward functions.
 
-states($s_t$), actions(\$a_t\$) and observations($o_t$)
+states($s_t$), actions($$a_t$$) and observations($o_t$)
 
 - [Introduction](#introduction)
 - [Related Work](#related-work)
@@ -156,7 +156,9 @@ This helps Dreamer do better with longer-term predictions of the world, over sho
 
 ### Dreamer training
 
-For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of 1.0 and 0.3 like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents that get passed to the world model to get the posterior and prior with respect to latents and also an initial state and initial action. We then get features from the posterior and use that for the image prediction, rewar Next, this is passed to the  The actor loss is the loss from the actor network, which is a 
+For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of 1.0 and 0.3 like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $latents = encoder_\theta(img)$ that get passed to the world model (RSSM) to get the posterior and prior $with respect to latents and also an initial state $s_0 = dynamics(img.shape)$ and initial action $a_0$. The RSSM returns the posterior $post$ and prior $prior$ by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we $posterior, prior = RSSM(latent, s_0, a0)$ We then get features from the posterior and use that for the image prediction, reward prediction from the reward model defined by a dense network. We use these networks for losses from the image and reward, and pass the prior distribution and posterior distribution to a KL divergence loss, and finally combine image loss, reward loss, and KL loss with a KL coeff to get the overall model loss. 
+
+The actor loss is the loss from the actor network, which is a 
 
 ### Dreamer evaluation 
 
@@ -212,6 +214,16 @@ For training the first version of the Dreamer prototype, we used Cheetah the env
     What would you do differently next time? 
     Reflect on the scope of your project, was it too much? Why?
 
+
+In this work we implemented the Dreamer algorithm for the MBRL-Lib library, and we applied MBRL approaches to the Gym-Duckietown environment. 
+
+Our results indicate that there certainly is potential for model-based approaches to perform well in Gym-Duckietown, but there are certain barriers to overcome, mainly a better reward function is needed, and higher capacity models that plan much further into the future.
+
+We learned a lot about how RL and MBRL algorithms are structured, how the distinction between model-based and model free can start to blur for algorithms like Dreamer. 
+
+If we were to start over, we would ask for help earlier, lots of people know much more about Duckietown than we do and were very helpful, we imagine it is the same for MBRL-Lib, so we would have reached out to the authors earlier. 
+
+Trying to fit in real robot experiments was definitely too much as both Gym-Duckietown and MBRL pose significant challenges to work with as it is. Finally, the amount of experiments needed to evaluate our work - since each RL run takes hours to learn on an environment like Duckietown - was out reach early on.
 
 
 
