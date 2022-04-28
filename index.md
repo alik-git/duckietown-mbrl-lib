@@ -173,7 +173,9 @@ $$pred_{rew} = DenseRewNet_\theta(features) \\ pred_{img} = decoder_\theta(featu
  $$loss_{img} = -\frac{1}{N}\sum \log(prob(pred_{rew} (observation)) \\
 loss_{rew} = -\frac{1}{N}\sum \log(prob(pred_{img} (rew))$$
 
-  and pass the prior distribution and posterior distribution to a KL divergence loss, $$loss_{KL} = -\frac{1}{N}\sum KL(posterior \| prior)$$ 
+and pass the prior distribution and posterior distribution to a KL divergence loss:
+  
+ $$loss_{KL} = -\frac{1}{N}\sum KL(posterior \| prior)$$ 
 
 and finally combine image loss, reward loss, and KL loss with a KL coeff to get the overall model loss. 
 
@@ -232,16 +234,20 @@ return = $$
     Provide something to help me give feedback on what I would do to improve this method or debug issues.
 
 
-PlaNet learning lane following on Duckietown:
+PlaNet learning how to turn (almost):
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-83--VmlldzoxOTE2MDQz?highlightShare" style="border:none;height:600px;width:100%"> </iframe>
 
+PlaNet learning to drive backward:
 
-Embed for wandb results:
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-48--VmlldzoxOTE2MDUw?highlightShare" style="border:none;height:1024px;width:100%"> </iframe>
 
-<!-- <div>
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:1024px;width:100%"> </iframe>
-</div> -->
+Planet learning to jitter for speed reward:
+
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-53--VmlldzoxOTE2MDYw?highlightShare" style="border:none;height:1024px;width:100%"> </iframe>
+
+
+Dreamer learning to model Duckietown:
 
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
