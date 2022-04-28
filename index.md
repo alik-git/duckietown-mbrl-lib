@@ -1,7 +1,3 @@
----
-title: Duckietown MBRL-Lib
----
-
 <!-- MathJax -->
 <script type="text/javascript"
   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
@@ -160,7 +156,7 @@ This helps Dreamer do better with longer-term predictions of the world, over sho
 
 ### Dreamer training
 
-For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of 1.0 and 0.3 like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model, represented by an encoder and decoder (a va). The actor loss is the loss from the actor network, which is a 
+For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of 1.0 and 0.3 like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. Next th The actor loss is the loss from the actor network, which is a 
 
 ### Dreamer evaluation 
 
