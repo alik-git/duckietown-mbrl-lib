@@ -22,6 +22,8 @@ ___
 
 Model-based reinforcement learning (MBRL) algorithms have various sub-components that each need to be carefully selected and tuned, which makes it difficult to quickly apply existing models/approaches to new tasks. In this work, we aim to integrate the Dreamer algoithm into an existing popular MBRL toolbox, and tune the Dreamer-v1 and PlaNet algorithms to the Gym-Duckietown environment. We also provide trained models and code to to use as a baseline for further development. Additionally, we propose an improved reward function for RL training in Gym-Duckietown, with code to allow easy analysis and evaluation of RL models and reward functions.
 
+states($s_t$), actions($a_t$) and observations($o_t$)
+
 - [Introduction](#introduction)
 - [Related Work](#related-work)
   - [Model Based vs Model Free RL](#model-based-vs-model-free-rl)
@@ -34,7 +36,8 @@ Model-based reinforcement learning (MBRL) algorithms have various sub-components
   - [Model Based vs Model Free RL](#model-based-vs-model-free-rl-1)
 - [Project Method](#project-method)
   - [Dreamer](#dreamer)
-  - [Dreamer network architectures](#dreamer-network-architectures)
+  - [Dreamer training](#dreamer-training)
+  - [Dreamer evaluation](#dreamer-evaluation)
 - [New skills we learned](#new-skills-we-learned)
   - [What we learned with Dreamer](#what-we-learned-with-dreamer)
   - [What we learned about logging and organization](#what-we-learned-about-logging-and-organization)
@@ -102,7 +105,7 @@ In the paper, the authors run Dreamer on the DeepMind control suite, similar to 
 
 ### Model-Based Reinforcement Learning
 
-To setup the reinforcement learning problem from a model-based reinforcement learning (MBRL) perspective, we adhere to the Markov decision process formulation \citep{bellman1957markovian}, where we use state $s \in \mathcal{S}$ and actions $a \in \mathcal{A}$ with reward function  $r(s,a)$ and the dynamics or transition function $f_\theta$, such that $s_{t+1} = f_{\theta}(s_t, a_t)$ for deterministic transitions, and stochastic transitions are given by the conditional $f_\theta(s_{t+1}|s_t, a_t) = \mathbb{P}(s_{t+1}|s_t, a_t, ; \theta)$ and learning the forward dynamics is akin to doing a fitting of approximation $\hat{f}$ to the real dynamics $f$ given real data from the system.\\
+To setup the reinforcement learning problem from a model-based reinforcement learning (MBRL) perspective, we adhere to the Markov decision process formulation \citep{bellman1957markovian}, where we use state $s \in \mathcal{S}$ and actions $a \in \mathcal{A}$ with reward function  $r(s,a)$ and the dynamics or transition function $f_\theta$, such that $s_{t+1} = f_{\theta}(s_t, a_t)$ for deterministic transitions, and stochastic transitions are given by the conditional $f_\theta(s_{t+1}\mid s_t, a_t) = \mathbb{P}(s_{t+1}\mid s_t, a_t, ; \theta)$ and learning the forward dynamics is akin to doing a fitting of approximation $\hat{f}$ to the real dynamics $f$ given real data from the system.\\
 
 ### PlaNet for Gym-Duckietown
 
@@ -112,15 +115,15 @@ No-policy is actually trained since the planning algorithm use only the models t
 
 Since the models are using stochastic decisions, the training is using a variational bound to optimise its parameters. It alternatively optimises the encoder model and the dynamics model by gradient ascent over the following variational bound:
 
-$$\ln{p}(o_{1:T}  |a_{1:T}) = \ln \int \prod_t p(s_t|s_{t-1},a_{t-1})p(o_t|s_t)ds_{1:T} \\ \geq \sum_{t=1}^{T}  \bigg( \mathbb{E}_{q(s_t|o_{\leq t},a_{\leq t})}[\ln{p(o_t|s_t)}])  - \\
-\mathbb{E}_{q(s_{t-1}|o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}|o_{\leq t},a_{\leq t})|| p(s_t|s_{t-1},a_{t-1})]] \bigg)$$
+$$\ln{p}(o_{1:T}  \mid a_{1:T}) = \ln \int \prod_t p(s_t\mid s_{t-1},a_{t-1})p(o_t\mid s_t)ds_{1:T} \\ \geq \sum_{t=1}^{T}  \bigg( \mathbb{E}_{q(s_t\mid o_{\leq t},a_{\leq t})}[\ln{p(o_t\mid s_t)}])  - \\
+\mathbb{E}_{q(s_{t-1}\mid o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}\mid o_{\leq t},a_{\leq t})\mid \mid  p(s_t\mid s_{t-1},a_{t-1})]] \bigg)$$
 
 The PlaNet models follow a Partially Observable Markov Decision Process(POMDP). It is built on a finite sets of: states($s_t$), actions($a_t$) and observations($o_t$).
 
-* Dynamics model : $s_t \sim p(s_t|s_{t-1},a_{t-1})$
-* Encoder : $s_t \sim q(s_t|o_{\leq t},a_{\leq t})$
-* Decoder : $o_t \sim p(o_t|s_{t},a_{t-1})$
-* Reward : $r_t \sim p(r_t|s_t)$
+* Dynamics model : $s_t \sim p(s_t \mid s_{t-1},a_{t-1})$
+* Encoder : $s_t \sim q(s_t \mid o_{\leq t},a_{\leq t})$
+* Decoder : $o_t \sim p(o_t \mid s_{t},a_{t-1})$
+* Reward : $r_t \sim p(r_t \mid s_t)$
 * $\gamma$ the discount factor $\gamma \in [0,1]$
 
 The rest of the details are outlined for the RSSM representation in comparsion to deterministic and stochastic models is shown in figure \ref{fig:planet_rssm}.
@@ -143,7 +146,7 @@ The largest advantage that model based approaches offer is their superior sample
 
 ### Dreamer
 
-Given that the \ml does not include a Dreamer implementation, but rather the PlaNet model, it makes sense to reuse the recurrent state model from the PlaNet implementation as a world model for Dreamer. However, there are structural components that are missing. For example, in departure from PlaNet, rather than a CEM for the best action sequence under the model for planning, Dreamer uses a dense action network parameterized by $\phi$ and the dense value network parameterized by $\psi$. For the action model with imagined actions, the authors use a tanh-transformed Gaussian \citep{SAC} output for the action network, which provides a deterministically-dependent mean and variance of the state through a reparameterization \citep{kingma2013auto} \citep{rezende2014stochastic} of the stochastic node, adding noise $\epsilon$ back in afterwards (to be inferred).
+Given that the MBRL-lib does not include a Dreamer implementation, but rather the PlaNet model, it makes sense to reuse the recurrent state model from the PlaNet implementation as a world model for Dreamer. However, there are structural components that are missing. For example, in departure from PlaNet, rather than a CEM for the best action sequence under the model for planning, Dreamer uses a dense action network parameterized by $\phi$ and the dense value network parameterized by $\psi$. For the action model with imagined actions, the authors use a tanh-transformed Gaussian \citep{SAC} output for the action network, which provides a deterministically-dependent mean and variance of the state through a reparameterization \citep{kingma2013auto} \citep{rezende2014stochastic} of the stochastic node, adding noise $\epsilon$ back in afterwards (to be inferred).
 
 $$a_\tau = \tanh(\mu_\phi(s_\tau) + \sigma_\phi(s_\tau) \epsilon), \qquad \epsilon \sim \mathcal{N}(0, \mathbb{I})$$
 
@@ -153,13 +156,13 @@ Then the value network consists of imagined value estimates $V_R(s_\tau) = \math
 
 $$V_\lambda(s_\tau) = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
 
-This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned shown in \ref{eq:1}, with the value network being updated with the gradient  $\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}||v_\psi(s_\tau) - V_\lambda(s_\tau))||^2$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
+This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned shown in \ref{eq:1}, with the value network being updated with the gradient  $\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}\\mid v_\psi(s_\tau) - V_\lambda(s_\tau))\\mid ^2$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
 
+### Dreamer training
 
+For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of 1.0 and 0.3 like the original paper. The model, actor, and critic losses are logged from their respective networks, which are initialized, whcih
 
-### Dreamer network architectures
-
-
+### Dreamer evaluation 
 
 ## New skills we learned
 
@@ -292,7 +295,7 @@ $$\mathbb{N} = \{ a \in \mathbb{Z} : a > 0 \}$$
 $$\forall \; x \in X \quad \exists \; y \leq \epsilon$$
 
 $$\color{blue}{X \sim Normal \; (\mu,\sigma^2)}$$
-$$P \left( A=2 \, \middle| \, \dfrac{A^2}{B}>4 \right)$$
+$$P \left( A=2 \, \middle\mid  \, \dfrac{A^2}{B}>4 \right)$$
 $$f(x) = x^2 - x^\frac{1}{\pi}$$
 $$f(X,n) = X_n + X_{n-1}$$
 $$f(x) = \sqrt[3]{2x} + \sqrt{x-2}$$
@@ -684,7 +687,7 @@ student in the class to understand how your method works. Make sure to include f
 
 \subsection{Model-Based Reinforcement Learning}
 
-To setup the reinforcement learning problem from a model-based reinforcement learning (MBRL) perspective, we adhere to the Markov decision process formulation \citep{bellman1957markovian}, where we use state $s \in \mathcal{S}$ and actions $a \in \mathcal{A}$ with reward function  $r(s,a)$ and the dynamics or transition function $f_\theta$, such that $s_{t+1} = f_{\theta}(s_t, a_t)$ for deterministic transitions, and stochastic transitions are given by the conditional $f_\theta(s_{t+1}|s_t, a_t) = \mathbb{P}(s_{t+1}|s_t, a_t, ; \theta)$ and learning the forward dynamics is akin to doing a fitting of approximation $\hat{f}$ to the real dynamics $f$ given real data from the system.\\
+To setup the reinforcement learning problem from a model-based reinforcement learning (MBRL) perspective, we adhere to the Markov decision process formulation \citep{bellman1957markovian}, where we use state $s \in \mathcal{S}$ and actions $a \in \mathcal{A}$ with reward function  $r(s,a)$ and the dynamics or transition function $f_\theta$, such that $s_{t+1} = f_{\theta}(s_t, a_t)$ for deterministic transitions, and stochastic transitions are given by the conditional $f_\theta(s_{t+1}\mid s_t, a_t) = \mathbb{P}(s_{t+1}\mid s_t, a_t, ; \theta)$ and learning the forward dynamics is akin to doing a fitting of approximation $\hat{f}$ to the real dynamics $f$ given real data from the system.\\
 
 \subsection{Tuning PlaNet for \gd}
 
@@ -694,17 +697,17 @@ No-policy is actually trained since the planning algorithm use only the models t
 
 Since the models are using stochastic decisions, the training is using a variational bound to optimise its parameters. It alternatively optimises the encoder model and the dynamics model by gradient ascent over the following variational bound:
 \begin{align*}
-    &\ln{p}(o_{1:T}  |a_{1:T}) \delequal \ln \int \prod_t p(s_t|s_{t-1},a_{t-1})p(o_t|s_t)ds_{1:T} \\
-    &\geq \sum_{t=1}^{T}  \left(\mathbb{E}_{q(s_t|o_{\leq t},a_{\leq t})}[\ln{p(o_t|s_t)}]) \right.\\
-     - &\left. \mathbb{E}_{q(s_{t-1}|o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}|o_{\leq t},a_{\leq t})|| p(s_t|s_{t-1},a_{t-1})]] \right)
+    &\ln{p}(o_{1:T}  \mid a_{1:T}) \delequal \ln \int \prod_t p(s_t\mid s_{t-1},a_{t-1})p(o_t\mid s_t)ds_{1:T} \\
+    &\geq \sum_{t=1}^{T}  \left(\mathbb{E}_{q(s_t\mid o_{\leq t},a_{\leq t})}[\ln{p(o_t\mid s_t)}]) \right.\\
+     - &\left. \mathbb{E}_{q(s_{t-1}\mid o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}\mid o_{\leq t},a_{\leq t})\mid \mid  p(s_t\mid s_{t-1},a_{t-1})]] \right)
 \end{align*}
 
 The PlaNet models follow a Partially Observable Markov Decision Process(POMDP). It is built on a finite sets of: states($s_t$), actions($a_t$) and observations($o_t$).
 \begin{itemize}
-    \item Dynamics model : $s_t \sim p(s_t|s_{t-1},a_{t-1})$
-    \item Encoder : $s_t \sim q(s_t|o_{\leq t},a_{\leq t})$
-    \item Decoder : $o_t \sim p(o_t|s_{t},a_{t-1})$ %like in class not like paper, but makes more sens
-    \item Reward : $r_t \sim p(r_t|s_t)$
+    \item Dynamics model : $s_t \sim p(s_t\mid s_{t-1},a_{t-1})$
+    \item Encoder : $s_t \sim q(s_t\mid o_{\leq t},a_{\leq t})$
+    \item Decoder : $o_t \sim p(o_t\mid s_{t},a_{t-1})$ %like in class not like paper, but makes more sens
+    \item Reward : $r_t \sim p(r_t\mid s_t)$
     \item $\gamma$ the discount factor $\gamma \in [0,1]$
 \end{itemize}
 
@@ -734,7 +737,7 @@ Then the value network consists of imagined value estimates $V_R(s_\tau) = \math
 
 $$V_\lambda(s_\tau) = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
 
-This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned shown in \ref{eq:1}, with the value network being updated with the gradient  $\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}||v_\psi(s_\tau) - V_\lambda(s_\tau))||^2$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
+This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned shown in \ref{eq:1}, with the value network being updated with the gradient  $\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}\mid \mid v_\psi(s_\tau) - V_\lambda(s_\tau))\mid \mid ^2$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
 
 { \cgg { 
 \subsection{Documentation}
@@ -1049,17 +1052,17 @@ In this work we applied two MBRL approaches to the Duckietown environment. We le
 
 % % Since the models are using stochastic decisions, the training is using a variational bound to optimise its parameters. It alternatively optimises the encoder model and the dynamics model by gradient ascent over the following variational bound:
 % % \begin{align*}
-% %     &\ln{p}(o_{1:T}  |a_{1:T}) \delequal \ln \int \prod_t p(s_t|s_{t-1},a_{t-1})p(o_t|s_t)ds_{1:T} \\
-% %     &\geq \sum_{t=1}^{T}  \left(\mathbb{E}_{q(s_t|o_{\leq t},a_{\leq t})}[\ln{p(o_t|s_t)}]) \right.\\
-% %      - &\left. \mathbb{E}_{q(s_{t-1}|o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}|o_{\leq t},a_{\leq t})|| p(s_t|s_{t-1},a_{t-1})]] \right)
+% %     &\ln{p}(o_{1:T}  \mid a_{1:T}) \delequal \ln \int \prod_t p(s_t\mid s_{t-1},a_{t-1})p(o_t\mid s_t)ds_{1:T} \\
+% %     &\geq \sum_{t=1}^{T}  \left(\mathbb{E}_{q(s_t\mid o_{\leq t},a_{\leq t})}[\ln{p(o_t\mid s_t)}]) \right.\\
+% %      - &\left. \mathbb{E}_{q(s_{t-1}\mid o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}\mid o_{\leq t},a_{\leq t})\mid \mid  p(s_t\mid s_{t-1},a_{t-1})]] \right)
 % % \end{align*}
 % % \subsubsection{POMDP}
 % % The PlaNet models follow a Partially Observable Markov Decision Process(POMDP).It is build on a finite sets of: states($s_t$), actions($a_t$) and observations($o_t$).
 % % \begin{itemize}
-% %     \item Dynamics model : $s_t \sim p(s_t|s_{t-1},a_{t-1})$
-% %     \item Encoder : $s_t \sim q(s_t|o_{\leq t},a_{\leq t})$
-% %     \item Decoder : $o_t \sim p(o_t|s_{t},a_{t-1})$ %like in class not like paper, but makes more sens
-% %     \item Reward : $r_t \sim p(r_t|s_t)$
+% %     \item Dynamics model : $s_t \sim p(s_t\mid s_{t-1},a_{t-1})$
+% %     \item Encoder : $s_t \sim q(s_t\mid o_{\leq t},a_{\leq t})$
+% %     \item Decoder : $o_t \sim p(o_t\mid s_{t},a_{t-1})$ %like in class not like paper, but makes more sens
+% %     \item Reward : $r_t \sim p(r_t\mid s_t)$
 % %     \item $\gamma$ the discount factor $\gamma \in [0,1]$
 % % \end{itemize}
 
