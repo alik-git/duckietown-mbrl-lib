@@ -5,7 +5,7 @@ title: Duckietown MBRL-Lib
 
 ___
 
-**Authors:** [Ali Kuwajerwala](https://alik-git.github.io/), Paul Crouther <br /> 
+**Authors:** [Ali Kuwajerwala](https://alik-git.github.io/), [Paul Crouther](https://www.linkedin.com/in/paul-crouther-47221b52/) <br /> 
 **Affiliation:** [Université de Montréal](https://diro.umontreal.ca/accueil/), [Mila](https://mila.quebec/en/) <br />
 **Date Published:** April 28, 2022
 
