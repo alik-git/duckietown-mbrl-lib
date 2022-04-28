@@ -1,24 +1,35 @@
 ---
 title: Duckietown MBRL-Lib
 ---
-## 1. Abstract 
+
+
+
+
+
+**Abstract**
 
 Abstract is work in progress:
-Model-based reinforcement learning (MBRL) algorithms have various sub-components that each need to be carefully selected and tuned, which makes it difficult to quickly apply existing models/approaches to new tasks. In this work, we aim to tune the Dreamer-v1 and PlaNet MBRL algorithms to the Gym-Duckietown environment \cite{dtown}, and provide trained models and code to to use as a baseline for further development. Additionally, we propose an improved reward function for RL training in \gd, and code to allow easy analysis and evaluation of RL models and reward functions.
+Model-based reinforcement learning (MBRL) algorithms have various sub-components that each need to be carefully selected and tuned, which makes it difficult to quickly apply existing models/approaches to new tasks. In this work, we aim to tune the Dreamer-v1 and PlaNet MBRL algorithms to the Gym-Duckietown environment, and provide trained models and code to to use as a baseline for further development. Additionally, we propose an improved reward function for RL training in Gym-Duckietown, and code to allow easy analysis and evaluation of RL models and reward functions.
+- [Introduction](#introduction)
+- [Related Work](#related-work)
+- [Background](#background)
+  - [Model Based vs Model Free RL](#model-based-vs-model-free-rl)
+- [Project Method](#project-method)
+- [New skills we learned](#new-skills-we-learned)
+  - [What we learned with Dreamer](#what-we-learned-with-dreamer)
+  - [What we learned about logging and organization](#what-we-learned-about-logging-and-organization)
+- [Experiments and Analysis](#experiments-and-analysis)
+- [Video Results](#video-results)
+- [Conclusions](#conclusions)
+- [Work Division](#work-division)
+  - [Markdown](#markdown)
+  - [Jekyll Themes](#jekyll-themes)
+  - [Support or Contact](#support-or-contact)
+## Introduction 
 
-![Image](figures/duckietown_bird_view.png)
-- [1. Abstract](#1-abstract)
-- [2. Introduction](#2-introduction)
-- [3. Related Work](#3-related-work)
-    - [3.0.1. 2 [2 pts] What is the related work? Provide references:](#301-2-2-pts-what-is-the-related-work-provide-references)
-    - [3.0.2. (1-2 paragraph(s)) Give a description of the most related work. How is your work similar or different from the most related work?](#302-1-2-paragraphs-give-a-description-of-the-most-related-work-how-is-your-work-similar-or-different-from-the-most-related-work)
-    - [3.0.3. 3 [2 pts] What background/math framework have you](#303-3-2-pts-what-backgroundmath-framework-have-you)
-    - [3.0.4. Describe what methods you are building your work on. Are you using RL, reset-free, hardware, learning from images? You want to provide enough information for the average student in the class to understand the background.](#304-describe-what-methods-you-are-building-your-work-on-are-you-using-rl-reset-free-hardware-learning-from-images-you-want-to-provide-enough-information-for-the-average-student-in-the-class-to-understand-the-background)
-  - [3.1. Model Based vs Model Free RL](#31-model-based-vs-model-free-rl)
-  - [3.2. Markdown](#32-markdown)
-  - [3.3. Jekyll Themes](#33-jekyll-themes)
-  - [3.4. Support or Contact](#34-support-or-contact)
-## 2. Introduction
+
+    1 [4 pts] Project Introduction (2 paragraphs, with a figure)
+    Tell your readers why this project is interesting. What we can learn. Why it is an important area for robot learning.
 
 See Abstract. This project is interesting because we would like to have robots perform difficult tasks within large environments with complex dynamics. MBRL is still very difficult for such tasks since the learned world model must accurately represent and make predictions about the environment. Model free (MF) approaches can perform better on such tasks, but they typically require an amount of interaction with the environment that is very inefficient when compared to MB approaches. 
 
@@ -26,18 +37,34 @@ Therefore, improving MBRL approaches to outperform MF approaches for tough envir
 
 In this work we attempt to use two MBRL algorithms, Dreamer-v1 and PlaNet, to learn a world model for the Gym-Duckietown environment, which we then use to train a lane-following policy. The Gym-Duckietown environment is significantly larger and more complex than environments included in the aforementioned algorithms' respective papers. We also provide the code we used, where we place a strong emphasis on documentation and modularity, so that more MBRL approaches can be applied to Gym-Duckietown, where our Dreamer-v1 and PlaNet can serve as comparative baselines. This helps us move toward our goal of getting robots to perform the kinds of difficult tasks we care about.
 
-## 3. Related Work
+##  Related Work
 
-#### 3.0.1. 2 [2 pts] What is the related work? Provide references: 
-#### 3.0.2. (1-2 paragraph(s)) Give a description of the most related work. How is your work similar or different from the most related work? 
+    2 [2 pts] What is the related work? Provide references:
+    (1-2 paragraph(s))
+    Give a description of the most related work. How is your work similar or different from the most related work?
+
+Give a description of the most related work. How is your work similar or different from the
+most related work?
+
+*RL, MBRL, PlaNet, what we can improve on PlaNet*
+*Dreamer is different because it uses PlaNet as a world model, and gets value estimates with respect to the world model, and then takes actions with respect to those estimates
 
 
-#### 3.0.3. 3 [2 pts] What background/math framework have you
-used? Provide references: (2-3 paragraph(s))
 
-#### 3.0.4. Describe what methods you are building your work on. Are you using RL, reset-free, hardware, learning from images? You want to provide enough information for the average student in the class to understand the background. 
 
-### 3.1. Model Based vs Model Free RL
+## Background
+
+    3 [2 pts] What background/math framework have you
+    used? Provide references: (2-3 paragraph(s) + some
+    math)
+    Describe what methods you are building your work on. Are you using RL, reset-free, hardware, learning from images? You want to provide enough information for the average student in the class to understand the background.
+
+*Math for RL, MBRL, PlaNet, what we can improve on PlaNet
+
+Describe what methods you are building your work on. Are you using RL, reset-free, hardware, learning from images? You want to provide enough information for the average student
+in the class to understand the background.
+
+###  Model Based vs Model Free RL
 
 The following section is the answer for both question 2 and question 3. The majority of this answer was taken directly from Ali's previous project since the related work has not changed. We have added a section for Dreamer.
 
@@ -46,15 +73,84 @@ Reinforcement learning is an active field of research in autonomous vehicles. Mo
 
 The largest advantage that model based approaches offer is their superior sample complexity. That is, model based approaches can use orders of magnitude less data or interaction with the external environment compared to model-free methods. This is because model based methods can train the policy on the internal model of the environment as opposed to the external environment itself. Also, model-free methods implicitly learn a `model of the environment' in some way eventually in order to predict the long-term reward of an action, they just do so inefficiently. Additionally, another advantage that model-based methods have is that the learned model of the environment can be task agnostic, meaning that it can be used for any task that requires predicting the state of the environment in the future.
 
+##  Project Method
+
+    4 [6 pts] Project Method, How will the method work (1-2
+    pages + figure(s) + math + algorithm)
+    Describe your method. Again, You want to provide enough information for the average student in the class to understand how your method works. Make sure to include figures, math, or algorithms to help people understand.
 
 
+
+
+
+## New skills we learned
+
+    5 [2 pts] What new skills have you(s) learned from this project?
+    List some of the technical skills you are learning from studying this method.
+
+### What we learned with Dreamer
+
+- Dreamer fundamentally different than other MBRL algorithms in the sense that there is also a policy being learned as opposed to just a world model.
+
+
+
+- MBRL-Lib tries to think of MBRL approaches as models only, and uses a "universal" outer loop to train the models, with the details of each model being inside a "train" function for that model. Dreamer is not very well suited in practice to this approach and makes it the optimization of the 3 networks difficult. This made us learn about the general structure of RL algorithms and MBRL algorithms.
+
+- Goal in mind was to do dreamer implementation that fits well with MBRL-Lib, potentially to submit a pull request to the library. But we decided to first get a prototype implementation done as a proof of concept that Dreamer can be trained using the env and training loop of the library.
+
+### What we learned about logging and organization
+
+- logging is tough
+
+
+## Experiments and Analysis
+
+    6 [8 pts] Experiments and Analysis**
+    In this section
+    1. Describe what experiment(s) you are going to run and why? How do these show you
+    have met your learning goals?
+    2. What do you think the results of these experiments will be?
+    3. Sketch out the figures that you will later generate from your work. Spend a few
+    minutes drawing them out in GIMP or photoshop. Why will these be enough evidence
+    for learning? Is anything missing?
+    Keep in mind these experiments are for this course project. What is expected is that you
+    should provide evidence that your method works and it has been coded up well. Provide
+    evidence of this via your data and learning graphs. However, this should not be restricted
+    to learning graphs.
+
+
+## Video Results 
+
+    7 [2 pts] Video Results
+    Include a link to a video of the method so far. This is not intended to be a final performance
+    video. Provide something to help me give feedback on what I would do to improve this
+    method or debug issues.
+
+
+## Conclusions
+
+    8 [4 pts] Conclusions
+    What have your results indicated?
+    What have you learned? 
+    What would you do differently next time? 
+    Reflect on the scope of your project, was it too much? Why?
+
+
+## Work Division
+
+    Provide a description on what each group member is working on as part of the project. I
+    recommend each student work on most of the parts of the project so everyone learns about
+    the content.
+    Student Name: Did x, y, and z.
+    Student Name: Did x, q, and r.
+    Student Name: Did q, y, and r.
 
 
 You can use the [editor on GitHub](https://github.com/alik-git/duckietown-mbrl-lib/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### 3.2. Markdown
+### Markdown
 
 Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
 
@@ -78,16 +174,55 @@ Syntax highlighted code block
 
 For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
 
-### 3.3. Jekyll Themes
+### Jekyll Themes
 
 Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/alik-git/duckietown-mbrl-lib/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
 
-### 3.4. Support or Contact
+### Support or Contact
 
 Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
 
+Display equation: $$equation$$
+
+$ y = f(x)$
+- $x + y$
+- $x - y$
+- $x \times y$ 
+- $x \div y$
+- $\dfrac{x}{y}$
+- $\sqrt{x}$
 
 
+- $\pi \approx 3.14159$
+- $\pm \, 0.2$
+- $\dfrac{0}{1} \neq \infty$
+- $0 < x < 1$
+- $0 \leq x \leq 1$
+- $x \geq 10$
+- $\forall \, x \in (1,2)$
+- $\exists \, x \notin [0,1]$
+- $A \subset B$
+- $A \subseteq B$
+- $A \cup B$
+- $A \cap B$
+- $X \implies Y$
+- $X \impliedby Y$
+- $a \to b$
+- $a \longrightarrow b$
+- $a \Rightarrow b$
+- $a \Longrightarrow b$
+- $a \propto b$
+
+$$\mathbb{N} = \{ a \in \mathbb{Z} : a > 0 \}$$
+$$\forall \; x \in X \quad \exists \; y \leq \epsilon$$
+
+$$\color{blue}{X \sim Normal \; (\mu,\sigma^2)}$$
+$$P \left( A=2 \, \middle| \, \dfrac{A^2}{B}>4 \right)$$
+$$f(x) = x^2 - x^\frac{1}{\pi}$$
+$$f(X,n) = X_n + X_{n-1}$$
+$$f(x) = \sqrt[3]{2x} + \sqrt{x-2}$$
+
+https://ashki23.github.io/markdown-latex.html
 
 ```latex
 
