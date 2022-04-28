@@ -152,7 +152,9 @@ $$a_\tau = \tanh(\mu_\phi(s_\tau) + \sigma_\phi(s_\tau) \epsilon), \qquad \epsil
 
 This formalizes the deterministic output of the action network returns a mean mu and we learn the variance of the noise sigma with this reparameterization, inferring from our normal noise epsilon, to represent our stochastic model.
 
-$$\mu_\phi(s_\tau), \sigma_\phi(s_\tau), \epsilon$$
+$$\text{mean } = \mu_\phi(s_\tau), \\
+\text{variance } = \sigma_\phi(s_\tau), \\
+\text{noise } = \epsilon$$
 
 Then the value network consists of imagined value estimates $$V_R(s_\tau) = \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} r_n))$$ which is the sum of rewards until the end of a horizon, then using values $$v_\psi(s_\tau)$$ then computes $$V^{k}_N(s_\tau) = \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{h = \min(\tau+k, t+H)-1} \gamma^{n-\tau}r_n + \gamma^{h-\tau} v_\psi(s_h)))$$ as a estimate of rewards beyond $k$ steps with the learned value model, and $$V_\lambda(s_\tau)$$ which is a exponentially weighted average of $$V^{k}_N(s_\tau)$$ at different values of k, shown in the following. 
 
@@ -162,7 +164,7 @@ This helps Dreamer do better with longer-term predictions of the world, over sho
 
 ### Dreamer training
 
-For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of $$\epsilon = 1.0 \text{ and } 0.3$$ like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $$latents = encoder_\theta(img)$$ that get passed to the world model (RSSM) to get the posterior and prior with respect to latents and also an initial state and initial action shown as: $$s_0 = dynamics(img.shape), a_0$$. The RSSM returns the posterior and prior by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we receive $$posterior, prior = RSSM_\theta(latent, s_0, a0)$$ from the dynamics model. We then get features from the posterior $$features = dynamics(posterior)$$and use that for the image prediction, reward prediction
+For training the first version of the Dreamer prototype, we used Cheetah the environment to compare directly to the in library PlaNet implementation. with action noise of $$\epsilon = 1.0 \text{ and } 0.3$$ like the original paper. The model, actor, and critic losses are logged from their respective networks. The model loss contains the reconstruction loss and represents the PlaNet world or dynamics model. The PlaNet world model is composed of an encoder and decoder, from a variational autoencoder (VAE) to transform the image inputs into latents, and then back to images. So, this encoder generates latents $$latents = encoder_\theta(img)$$ that get passed to the world model (RSSM) to get the posterior and prior with respect to latents and also an initial state and initial action shown as: $$s_0 = dynamics(img.shape), a_0$$. The RSSM returns the posterior and prior by rolling out an RNN from a starting state through each index of an embedding input, or latent, and an action such that we receive $$posterior, prior = RSSM_\theta(latent, s_0, a_0)$$ from the dynamics model. We then get features from the posterior $$features = dynamics(posterior)$$and use that for the image prediction, reward prediction
 
 $$pred_{rew} = DenseRewNet_\theta(features) \\ pred_{img} = decoder_\theta(features)$$
 
@@ -236,6 +238,14 @@ Embed for wandb results:
 
 <div>
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
+</div>
+
+<div>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:500px;width:120%"> </iframe>
+</div>
+
+<div>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz" style="border:none;height:500px;width:100%"> </iframe>
 </div>
 
 
