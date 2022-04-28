@@ -2,6 +2,10 @@
 title: Duckietown MBRL-Lib
 ---
 
+<!-- MathJax -->
+<script type="text/javascript"
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 
 ___
 
@@ -29,6 +33,8 @@ Model-based reinforcement learning (MBRL) algorithms have various sub-components
   - [PlaNet for Gym-Duckietown](#planet-for-gym-duckietown)
   - [Model Based vs Model Free RL](#model-based-vs-model-free-rl-1)
 - [Project Method](#project-method)
+  - [Dreamer](#dreamer)
+  - [Dreamer network architectures](#dreamer-network-architectures)
 - [New skills we learned](#new-skills-we-learned)
   - [What we learned with Dreamer](#what-we-learned-with-dreamer)
   - [What we learned about logging and organization](#what-we-learned-about-logging-and-organization)
@@ -77,15 +83,7 @@ MBRL-Lib contains implementations of various popular \mb approaches, but more im
 
 Gym-Duckietown, a self-driving car simulator for the Duckietown universe already built as an OpenAI Gym environment is the ideal  candidate to make available for use with the model-based approaches provided by MBRL-Lib along with Dreamer.
 
-
-
-*Gym-Duckietown*
-
-The environments in which to deploy RL methods can be as simple as tic-tac-toe or as complex as a nearly photo realistic simulation of a whole city \cite{carla}. The most popular environments for current RL research are those provided in the OpenAI Gym toolkit \cite{openaigym}. OpenAI Gym also provides a set of standards which can be used to make environments widely compatible with any software designed to accommodate those standards. MBRL-Lib is an example of such software, and comes with the standard environments from OpenAI Gym built in. 
-
-Naturally, this makes Gym-Duckietown---a self-driving car simulator for the Duckietown universe already built as an OpenAI gym environment \cite{dtown}---the perfect candidate to make available for use with the \mb approaches provided by MBRL.
-
-This is not to say however, that Gym-Duckietown works perfectly with MBRL-Lib right out of the box. Duckietown has significantly more complex dynamics than the standard \og environments. Consider for example that the Cheetah environment (See Fig. \ref{fig:fig1a}) only consists of one (albeit complex) object in a plain background with the camera always tracking it. Compared to \gd, where the camera is fixed on the car which moves through the scene, drastically changing the objects found in different observations.
+Gym-Duckietown is different from most environments previously used by model-based approaches. It has significantly more complex dynamics than the standard \og environments. Consider for example that the Cheetah environment (See Fig. \ref{fig:fig1a}) only consists of one (albeit complex) object in a plain background with the camera always tracking it. Compared to \gd, where the camera is fixed on the car which moves through the scene, drastically changing the objects found in different observations.
 Our results indicate that while MBRL methods have the potential to perform well in \gd, they need to be carefully tuned and modified to achieve results comparable to those of the current baselines.
 
 ### Dream to Control (Dreamer)
@@ -114,15 +112,8 @@ No-policy is actually trained since the planning algorithm use only the models t
 
 Since the models are using stochastic decisions, the training is using a variational bound to optimise its parameters. It alternatively optimises the encoder model and the dynamics model by gradient ascent over the following variational bound:
 
-
-$$\ln{p}(o_{1:T}  |a_{1:T}) = \\ \ln \int \prod_t p(s_t|s_{t-1},a_{t-1})p(o_t|s_t)ds_{1:T}$$
-$\geq \sum_{t=1}^{T}  \left(\mathbb{E}_{q(s_t|o_{\leq t},a_{\leq t})}[\ln{p(o_t|s_t)}])-
-\mathbb{E}_{q(s_{t-1}|o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}|o_{\leq t},a_{\leq t})|| p(s_t|s_{t-1},a_{t-1})]] \right)$
-
-speration text 
-
-$$\ln{p}(o_{1:T}  |a_{1:T}) = \ln \int \prod_t p(s_t|s_{t-1},a_{t-1})p(o_t|s_t)ds_{1:T} \\ \geq \sum_{t=1}^{T}  \left(\mathbb{E}_{q(s_t|o_{\leq t},a_{\leq t})}[\ln{p(o_t|s_t)}])  -
-\mathbb{E}_{q(s_{t-1}|o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}|o_{\leq t},a_{\leq t})|| p(s_t|s_{t-1},a_{t-1})]] \right)$$
+$$\ln{p}(o_{1:T}  |a_{1:T}) = \ln \int \prod_t p(s_t|s_{t-1},a_{t-1})p(o_t|s_t)ds_{1:T} \\ \geq \sum_{t=1}^{T}  \bigg( \mathbb{E}_{q(s_t|o_{\leq t},a_{\leq t})}[\ln{p(o_t|s_t)}])  - \\
+\mathbb{E}_{q(s_{t-1}|o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}|o_{\leq t},a_{\leq t})|| p(s_t|s_{t-1},a_{t-1})]] \bigg)$$
 
 The PlaNet models follow a Partially Observable Markov Decision Process(POMDP). It is built on a finite sets of: states($s_t$), actions($a_t$) and observations($o_t$).
 
@@ -150,7 +141,23 @@ The largest advantage that model based approaches offer is their superior sample
     Again, You want to provide enough information for the average student in the class to understand how your method works. 
     Make sure to include figures, math, or algorithms to help people understand.
 
+### Dreamer
 
+Given that the \ml does not include a Dreamer implementation, but rather the PlaNet model, it makes sense to reuse the recurrent state model from the PlaNet implementation as a world model for Dreamer. However, there are structural components that are missing. For example, in departure from PlaNet, rather than a CEM for the best action sequence under the model for planning, Dreamer uses a dense action network parameterized by $\phi$ and the dense value network parameterized by $\psi$. For the action model with imagined actions, the authors use a tanh-transformed Gaussian \citep{SAC} output for the action network, which provides a deterministically-dependent mean and variance of the state through a reparameterization \citep{kingma2013auto} \citep{rezende2014stochastic} of the stochastic node, adding noise $\epsilon$ back in afterwards (to be inferred).
+
+$$a_\tau = \tanh(\mu_\phi(s_\tau) + \sigma_\phi(s_\tau) \epsilon), \qquad \epsilon \sim \mathcal{N}(0, \mathbb{I})$$
+
+This formalizes the deterministic output of the action network returns a mean $\mu_\phi(s_\tau)$ and we learn the variance of the noise $\sigma_\phi(s_\tau)$ with this reparameterization, inferring from our normal noise $\epsilon$, to represent our stochastic model.
+
+Then the value network consists of imagined value estimates $V_R(s_\tau) = \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} r_n))$ which is the sum of rewards until the end of a horizon, then using values $v_\psi(s_\tau)$ then computes $V^{k}_N(s_\tau) = \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{h = \min(\tau+k, t+H)-1} \gamma^{n-\tau}r_n + \gamma^{h-\tau} v_\psi(s_h)))$ as a estimate of rewards beyond $k$ steps with the learned value model, and $V_\lambda(s_\tau)$ which is a exponentially weighted average of $V^{k}_N(s_\tau)$ at different values of k, shown in the following. 
+
+$$V_\lambda(s_\tau) = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
+
+This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned shown in \ref{eq:1}, with the value network being updated with the gradient  $\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}||v_\psi(s_\tau) - V_\lambda(s_\tau))||^2$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
+
+
+
+### Dreamer network architectures
 
 
 
