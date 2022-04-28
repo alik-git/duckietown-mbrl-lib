@@ -214,7 +214,8 @@ def train(
             # action = agent.act(obs) + action_noise
             action = np.clip(action, -1.0, 1.0)  # to account for the noise
             '''
-            next_obs, reward, done, info = curr_env.step(action.squeeze(0).numpy())
+            action = action.squeeze(0).cpu().numpy()
+            next_obs, reward, done, info = curr_env.step(action)
             replay_buffer.add(obs, action, next_obs, reward, done)
             episode_reward += reward
             obs = next_obs

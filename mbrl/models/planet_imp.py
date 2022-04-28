@@ -472,6 +472,8 @@ class PLANet(nn.Module):
         post = self.state[:4]
         action = self.state[4]
 
+        obs = obs.to(self.device)
+
         embed = self.encoder(obs)
         post, _ = self.dynamics.obs_step(post, action, embed)
         feat = self.dynamics.get_feature(post)
