@@ -236,7 +236,7 @@ return = $$
 
 PlaNet learning how to turn (almost):
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-83--VmlldzoxOTE2MDQz?highlightShare" style="border:none;height:600px;width:100%"> </iframe>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-83--VmlldzoxOTE2MDQz?highlightShare" style="border:none;height:700px;width:100%"> </iframe>
 
 PlaNet learning to drive backward:
 
