@@ -227,6 +227,10 @@ The actor loss is the loss from the actor network, which is a
     Provide something to help me give feedback on what I would do to improve this method or debug issues.
 
 
+Embed for wandb results:
+
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:1024px;width:100%">
+
 ## Conclusions
 
     8 [4 pts] Conclusions
