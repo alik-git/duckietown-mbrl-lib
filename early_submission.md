@@ -13,6 +13,7 @@ ___
 
 
 
+
 **Abstract**
 
 Model-based reinforcement learning (MBRL) algorithms have various sub-components that each need to be carefully selected and tuned, which makes it difficult to quickly apply existing models/approaches to new tasks. In this work, we aim to integrate the Dreamer algoithm into an existing popular MBRL toolbox, and tune the Dreamer-v1 and PlaNet algorithms to the Gym-Duckietown environment. We also provide trained models and code to to use as a baseline for further development. Additionally, we propose an improved reward function for RL training in Gym-Duckietown, with code to allow easy analysis and evaluation of RL models and reward functions.
@@ -24,6 +25,8 @@ Model-based reinforcement learning (MBRL) algorithms have various sub-components
   - [Gym-Duckietown](#gym-duckietown)
   - [Dream to Control (Dreamer)](#dream-to-control-dreamer)
 - [Background](#background)
+  - [Model-Based Reinforcement Learning](#model-based-reinforcement-learning)
+  - [PlaNet for Gym-Duckietown](#planet-for-gym-duckietown)
   - [Model Based vs Model Free RL](#model-based-vs-model-free-rl-1)
 - [Project Method](#project-method)
 - [New skills we learned](#new-skills-we-learned)
@@ -73,8 +76,6 @@ MBRL-Lib contains implementations of various popular \mb approaches, but more im
 
 
 
-*Gym-Duckietown*
-
 The environments in which to deploy RL methods can be as simple as tic-tac-toe or as complex as a nearly photo realistic simulation of a whole city \cite{carla}. The most popular environments for current RL research are those provided in the OpenAI Gym toolkit \cite{openaigym}. OpenAI Gym also provides a set of standards which can be used to make environments widely compatible with any software designed to accommodate those standards. MBRL-Lib is an example of such software, and comes with the standard environments from OpenAI Gym built in. 
 
 Naturally, this makes Gym-Duckietown---a self-driving car simulator for the Duckietown universe already built as an OpenAI gym environment \cite{dtown}---the perfect candidate to make available for use with the \mb approaches provided by MBRL.
@@ -84,9 +85,9 @@ Our results indicate that while MBRL methods have the potential to perform well 
 
 ### Dream to Control (Dreamer)
 
-To observe how Duckietown scales with different and more performant MBRL algorithms and to facilitate learning, one of the goals in this project is to develop an implementation of Dreamer \citep{Dreamer}, which does not exist in MBRL-Lib. Similar to PlaNet, Dreamer uses a recurrent state space model (RSSM) to represent the underlying MDP with partial observability. Where it differs from PlaNet is in the model fitting section and the planning section. With Dreamer, the model fitting part is broken into a dynamics learning section and a behavior learning section which does rollouts of imagined trajectories, and finally updates parameters for the action model, and value model using gradients of value estimates for the learning objective. Since these trajectories are imagined, the authors utilize reparameterization for continuous actions and states. Lastly, Dreamer computes the state from history during the environment interaction step, with noise added to the action for exploration.
+To observe how Duckietown scales with different and more performant MBRL algorithms and to facilitate learning, one of the goals in this project is to develop an implementation of Dreamer \citep{Dreamer}, which does not exist in MBRL-Lib. Similar to PlaNet, Dreamer uses a recurrent state space model (RSSM) to represent the underlying MDP with partial observability by using PlaNet as a world model. Where it differs from PlaNet is in the model fitting section and the lack of a planning section. With Dreamer, the model fitting part is broken into a dynamics learning section and a behavior learning section which does rollouts of imagined trajectories, and finally updates parameters for the action model, and value model using gradients of value estimates of imagined states for the learning objective. Since these trajectories are imagined, the authors utilize reparameterization for continuous actions and states. Lastly, Dreamer computes the state from history during the environment interaction step, with noise added to the action for exploration.
 
-In the paper, the authors run Dreamer on the DeepMind control suite, similar to PlaNet. However, their implementation is in TensorFlow, and will need to be re-implemented in PyTorch for direct comparison.
+In the paper, the authors run Dreamer on the DeepMind control suite, similar to PlaNet. However, since the original implementation is in TensorFlow, it will need to be re-implemented in PyTorch for direct comparison to other algorithms in MBRL-Lib.
 
 ## Background
 
@@ -96,7 +97,22 @@ In the paper, the authors run Dreamer on the DeepMind control suite, similar to 
     Are you using RL, reset-free, hardware, learning from images? 
     You want to provide enough information for the average student in the class to understand the background.
 
+### Model-Based Reinforcement Learning
 
+To setup the reinforcement learning problem from a model-based reinforcement learning (MBRL) perspective, we adhere to the Markov decision process formulation \citep{bellman1957markovian}, where we use state $s \in \mathcal{S}$ and actions $a \in \mathcal{A}$ with reward function  $r(s,a)$ and the dynamics or transition function $f_\theta$, such that $s_{t+1} = f_{\theta}(s_t, a_t)$ for deterministic transitions, and stochastic transitions are given by the conditional $f_\theta(s_{t+1}|s_t, a_t) = \mathbb{P}(s_{t+1}|s_t, a_t, ; \theta)$ and learning the forward dynamics is akin to doing a fitting of approximation $\hat{f}$ to the real dynamics $f$ given real data from the system.\\
+
+### PlaNet for Gym-Duckietown
+
+Of the important contributions of PlaNet \citep{PlaNet}, one of them is the recurrent state space model (RSSM). The RSSM has both stochastic and deterministic components and it was shown in PlaNet to greatly improve results compared to purely stochastic or deterministic models on complicated task.
+To bring the input images to the latent space, we need an encoder. Since we are using images, a convolution neural net is perfect for the task.\\
+No-policy is actually trained since the planning algorithm use only the models to choose the next best action.\\
+
+Since the models are using stochastic decisions, the training is using a variational bound to optimise its parameters. It alternatively optimises the encoder model and the dynamics model by gradient ascent over the following variational bound:
+<!-- $$ \ln{p}(o_{1:T}  |a_{1:T}) \delequal \ln \int \prod_t p(s_t|s_{t-1},a_{t-1})p(o_t|s_t)ds_{1:T} \\
+&\geq \sum_{t=1}^{T}  \left(\mathbb{E}_{q(s_t|o_{\leq t},a_{\leq t})}[\ln{p(o_t|s_t)}]) \right.\\
+- &\left. \mathbb{E}_{q(s_{t-1}|o_{\leq t-1},a_{\leq t-1})}[KL[q(s_{t}|o_{\leq t},a_{\leq t})|| p(s_t|s_{t-1},a_{t-1})]] \right $$  -->
+
+The PlaNet models follow a Partially Observable Markov Decision Process(POMDP). It is built on a finite sets of: states($s_t$), actions($a_t$) and observations($o_t$).
 
 ###  Model Based vs Model Free RL
 
@@ -178,4 +194,8 @@ The largest advantage that model based approaches offer is their superior sample
     Student Name: Did x, y, and z.
     Student Name: Did x, q, and r.
     Student Name: Did q, y, and r.
+
+
+
+
 
