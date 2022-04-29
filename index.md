@@ -190,9 +190,11 @@ The actor loss is the loss from the actor network, which is described in the fol
 
 Such that our reward model gives us:
 
-$$rews = -\frac{1}{N}\sum model_{rew}(features_{imagined})$$
+$$rewards = \frac{1}{N}\sum model_{rew}(features_{imagined})$$
 
-$$\lambda-returns = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
+$$values = \frac{1}{N}\sum ValueModel(features_{imagined})$$
+
+$$returns_{\lambda} = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}rewards + \lambda^{H-1}values$$
 
 Such that the actor loss is (where gamma is a the discount factor):
 
@@ -247,8 +249,8 @@ Dreamer Observation Loss
 
 
 
-
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
+<!-- 
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:500px;width:100%"> </iframe> -->
 
 <!-- View only:
 
@@ -264,7 +266,7 @@ Dreamer Observation Loss
     Provide something to help me give feedback on what I would do to improve this method or debug issues.
 
 
-PlaNet learning how to turn (almost):
+<!-- PlaNet learning how to turn (almost):
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-83--VmlldzoxOTE2MDQz?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
@@ -288,7 +290,7 @@ Dreamer trying to do ... something in Duckietown:
 
 Dreamer learning to model Cheetah in Mujoco:
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-73--VmlldzoxOTE2MDgx?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-73--VmlldzoxOTE2MDgx?highlightShare" style="border:none;height:850px;width:100%"> </iframe> -->
 
 
 
