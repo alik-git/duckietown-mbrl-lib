@@ -198,7 +198,7 @@ $$returns_{\lambda} = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}rewards + \lambd
 
 Such that the actor loss is (where gamma is a the discount factor):
 
-$$loss_{actor} = -\frac{1}{N}\sum \gamma * (\lambda-returns)$$
+$$loss_{actor} = -\frac{1}{N}\sum \gamma * (returns_{\lambda})$$
 
 and for the critic:
 
@@ -249,8 +249,8 @@ Dreamer Observation Loss
 
 
 
-<!-- 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:500px;width:100%"> </iframe> -->
+
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:1500px;width:100%"> </iframe>
 
 <!-- View only:
 
