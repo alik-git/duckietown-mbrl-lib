@@ -157,7 +157,20 @@ reward = (
 )
 ```
 
+I tried various tweaks to the reward function, with the only marginal improvement coming from replacing the "speed reward" with a "distance traveled" reward. This slightly reduced the jitter in the learned behavior.
 
+```python
+reward = (
+        # +1.0 * speed * lp.dot_dir + # Speed Reward
+        -10 * np.abs(lp.dist) + # Stay in center of lane reward
+        +40 * col_penalty # Big penalty for collision 
+)
+# Ali's reward:
+delta_pos = self.cur_pos - self.cur_poses[0]
+distance_traveled = np.linalg.norm(delta_pos)
+reward += distance_traveled*50
+```
+It was quite time consuming to try to fix the reward function as you can't use the reward as a metric anymore. A "high reward" doesn't exactly mean your model is learning more intelligent behavior. Evaluating the reward function meant running a few experiments after each change and qualitatively observing the behavior of the policy.
 
 ### Dreamer
 
@@ -181,7 +194,7 @@ Then the value network consists of imagined value estimates $$V_R(s_\tau) = \mat
 
 $$V_\lambda(s_\tau) = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
 
-This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $$\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned shown in \ref{eq:1}, with the value network being updated with the gradient  $$\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}\| v_\psi(s_\tau) - V_\lambda(s_\tau))\| ^2$$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
+This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $$\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned, with the value network being updated with the gradient  $$\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}\| v_\psi(s_\tau) - V_\lambda(s_\tau))\| ^2$$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
 
 ### Dreamer training
 
@@ -209,7 +222,7 @@ First, we use the dynamics model to imagine ahead a few trajectories:
 
 $$features_{imagined} = dynamics(s_\tau.detach(), imaginehorizon)$$
 
-The actor loss is the loss from the actor network, which is described in the following, using the $$\lambda-return$$ which is such that: $$\text{fixed 1-step return if : } \lambda = 0 \\ \text{Monte Carlo return if: } \lambda = 1$$
+The actor loss is the loss from the actor network, which is described in the following, using the $$\lambda-return$$ which is such that: $$\text{fixed 1-step return if : } \lambda = 0 \text{Monte Carlo return if: } \lambda = 1$$
 
 Such that our reward model gives us:
 
@@ -241,7 +254,7 @@ Adam_{critic} = opt(lr=\text{lr}_{critic})$$
 Then we perform an `optimizer.step()` with all of them (Note: Doing this in MBRL-lib is more difficult than it should be!). We nested them all under a dreamer-update function, but diverged from the philosophy of the library to do so. MBRL-Lib casts the MBRL/RL problem as the dynamics being a standard model and supervised-learning style dynamics fitting as trajectory or optimization update. Given that Dreamer breaks apart the model learning, behavior learning, and environment interaction steps, this simplification leads to a training loop not being able to fully support Dreamer. To this end, we forced the Dreamer code into the dynamics model, and allowed the library to think it was performing a singular update when it was actually performing multiple updates. This means however that our implementation is a little crude, and there is potential for future projects where we redesign the Dreamer implementation to be more fitting with the original library.
 
 ### Dreamer evaluation 
-We run a test period of 3 episodes in most cases, sampling actions from the action model and passing them to the environment without any learning. In addition, to evaluate Dreamer, we return only the $$loss_{reward},\\ loss_{img}, \\ loss_{KL}$$
+We run a test period of 3 episodes in most cases, sampling actions from the action model and passing them to the environment without any learning. In addition, to evaluate Dreamer, we return only the $$loss_{reward}, loss_{img}, loss_{KL}$$ .
 
 ## New skills we learned
 
