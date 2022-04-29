@@ -14,6 +14,13 @@ from .util import Conv2dDecoder, Conv2dEncoder, to_tensor #From mbrl-lib.PlaNet
 
 from PIL import Image
 
+import wandb
+from collections import Iterable
+import omegaconf
+
+from pathlib import Path
+import cv2
+
 from mbrl.models.planet import PlaNetModel #will need ActionDecoder and DenseModel
 #from mbrl.models.action import ActionDecoder
 #from mbrl.models.dense import DenseModel
@@ -28,6 +35,44 @@ from torch.utils.data import DataLoader, IterableDataset
 from torch.distributions import Categorical, Normal
 from mbrl.models.planet_imp import PLANet, FreezeParameters
 from mbrl.models.planet_legacy import Episode, DMControlSuiteEnv
+
+def flatten_config(cfg, curr_nested_key):
+    """The nested config file provided by Hydra cannot be parsed by wandb. This recursive function flattens the config file, separating the nested keys and their parents via an underscore. Allows for easier configuration using wandb.
+
+    Args:
+        cfg (Hydra config): The nested config file used by Hydra.
+        curr_nested_key (str): The current parent key (used for recursive calls).
+
+    Returns:
+        (dict): A flatt configuration dictionary.
+    """    
+    
+    flat_cfg = {}
+
+    for curr_key in cfg.keys():
+
+        # deal with missing values
+        try:
+            curr_item = cfg[curr_key]
+        except Exception as e:
+            curr_item = 'NA'
+
+        # deal with lists
+        if type(curr_item) == list or type(curr_item) == omegaconf.listconfig.ListConfig:
+            for nested_idx, nested_item in enumerate(curr_item):
+                list_nested_key = f"{curr_nested_key}>{curr_key}>{nested_idx}"
+                flat_cfg[list_nested_key] = nested_item
+        
+        # check if item is also a config
+        # recurse
+        elif isinstance(curr_item, Iterable) and type(curr_item) != str:
+            flat_cfg.update(flatten_config(curr_item, f"{curr_nested_key}>{curr_key}"))
+
+        # otherwise just add to return dict
+        else:
+            flat_cfg[f"{curr_nested_key}>{curr_key}"] = curr_item
+
+    return flat_cfg
 
 class ExperienceSourceDataset(IterableDataset):
     """
@@ -118,6 +163,11 @@ class DreamerModel(Model):
         super().__init__(device)
         self.outside_config = outside_config
         
+        final_dreamer_config = {"DC" : outside_config}
+        flat_cfg = flatten_config(final_dreamer_config, ">")
+        for config_item in flat_cfg:
+            wandb.config[config_item] = flat_cfg[config_item]
+        
         self.obs_shape = obs_shape
         self.hidden_size_fcs = hidden_size_fcs
         self.device = device
@@ -133,7 +183,7 @@ class DreamerModel(Model):
         self.name = 'Dreamer'
         
 
-    def setGymEnv(self, env):
+    def setGymEnv(self, env, workdir):
         self.env = env
         sample_action_space = np.zeros(self.env.action_space.shape)
         # In the future we may want to use the MBRL-Lib 
@@ -162,8 +212,21 @@ class DreamerModel(Model):
         self.imagine_horizon = self.outside_config['dreamer']["imagine_horizon"]
         prefill_episodes = self._prefill_train_batch()
         self._add(prefill_episodes)
+        self.workdir = workdir
+        self.curr_episode = 0
+        self.currently_testing = False
+        self.video_counter = 0
+        self.in_duckietown = False
+        
+    
 
     # functions we added to make this work with MBRL-Lib
+    def set_curr_episode(self, episode):
+        self.curr_episode = episode
+        
+    def set_currently_testing(self, currently_testing):
+        self.currently_testing = currently_testing
+    
     def reset_world_model(self, device=None):
         self.model.get_initial_state(device=device)
         
@@ -189,7 +252,7 @@ class DreamerModel(Model):
                          lambda_=0.95,
                          kl_coeff=1.0,
                          free_nats=3.0,
-                         log=False):
+                         log=True):
         """Constructs loss for the Dreamer objective
             Args:
                 obs (TensorType): Observations (o_t)
@@ -289,6 +352,15 @@ class DreamerModel(Model):
 
             """
             obs, action, rewards = self._process_batch(batch, pixel_obs=True)
+
+            # hacky check to see if we are using the duckietown environment
+            # I just see if the obs shape ends in 3, for the other envs it does not 
+            if obs.shape[-1] == 3:
+                self.in_duckietown = True
+            
+            if self.in_duckietown:
+                obs = obs.permute((0,1,4,2,3))
+            
             
             return_dict = self.compute_dreamer_loss(obs, action, rewards, self.imagine_horizon)
 
@@ -576,9 +648,38 @@ class DreamerModel(Model):
             frame = frame.transpose((1, 2, 0))
             return Image.fromarray(frame)
         
-        img, *imgs = [display_image(frame) for frame in list(frames)]
-        img.save(f'{self.trainer.log_dir}/movies/movie_{self.current_epoch}.gif', format='GIF', append_images=imgs,
-         save_all=True, loop=0)
+        # create destination path for movies 
+        movie_save_folder = f'{self.workdir}/movies'
+        Path(movie_save_folder).mkdir(parents=True, exist_ok=True)
+        video_name = f"movie_e{self.curr_episode}_t{int(self.currently_testing)}_c{self.video_counter}"
+        
+        self.video_counter += 1
+        # # create a videowriter
+        # videodims = (frames.shape[-2], frames.shape[-1])
+        # fourcc = cv2.VideoWriter_fourcc(*'MPEG')
+        # video = cv2.VideoWriter(f"{movie_save_folder}/{video_name}.mp4",fourcc, 10,videodims)
+        
+        # # write to video
+        # for frame in list(frames):
+        #     curr_img_frame = display_image(frame)
+        #     video.write(cv2.cvtColor(np.array(curr_img_frame), cv2.COLOR_RGB2BGR))
+        # video.release()
+        
+        if self.video_counter<200 or self.video_counter%50: 
+            # also save gif
+            img, *imgs = [display_image(frame) for frame in list(frames)]
+            # img.save(f'{self.trainer.log_dir}/movies/movie_{self.current_epoch}.gif', format='GIF', append_images=imgs,
+            #  save_all=True, loop=0)
+            
+            img_save_loc = f'{movie_save_folder}/{video_name}.gif'
+            img.save(img_save_loc, format='GIF', append_images=imgs,
+            save_all=True, loop=0)
+            
+            image_array = [display_image(frame) for frame in list(frames)]
+            # images = wandb.Image(image_array, caption=f"{video_name}")
+            wandb_saved_gif = wandb.Image(img_save_loc)
+            wandb.log({"video": wandb_saved_gif, "global_episode": self.curr_episode})
+        
         return frames
     
     def _log_summary(self, obs, action, embed, image_pred):

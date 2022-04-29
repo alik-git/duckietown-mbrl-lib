@@ -100,7 +100,7 @@ def train(
     # Use hydra to create a dreamer model (really uses PlaNet model)
     dreamer = hydra.utils.instantiate(cfg.dynamics_model)
     # Give it the real gym env to model
-    dreamer.setGymEnv(env)
+    dreamer.setGymEnv(env, work_dir)
 
     # adam optim that takes into account all 3 network losses
     # actor, critic, model
@@ -155,6 +155,8 @@ def train(
     step = replay_buffer.num_stored
     total_rewards = 0.0
     for episode in range(cfg.algorithm.num_episodes):
+        dreamer.set_curr_episode(episode)
+        
         # Train the model for one epoch of `num_grad_updates`
         dataset, _ = get_sequence_buffer_iterator(
             replay_buffer,
@@ -178,8 +180,10 @@ def train(
         if is_test_episode(episode):
             print("AHH ITS A TEST EPISODE!!!")
             curr_env = Monitor(env, work_dir, force=True)
+            dreamer.set_currently_testing(True)
         else:
             curr_env = env
+            dreamer.set_currently_testing(False)
 
         # Collect one episode of data
         episode_reward = 0.0
@@ -191,6 +195,16 @@ def train(
         action = None
         done = False
         while not done:
+            
+            # hacky check to see if we are using the duckietown environment
+            # I just see if the obs shape ends in 3, for the other envs it does not 
+            if obs.shape[-1] == 3:
+                dreamer.in_duckietown = True
+            
+            if dreamer.in_duckietown:
+                obs = np.transpose(obs, (2,0,1))
+                pass
+            
             # want to do 
             #dreamer.update(...)
             #   planet.update(..)
@@ -208,7 +222,7 @@ def train(
             '''
             # want to do (kinda)
             # action, _ = dreamer.policy(obs)
-            action, _, state, = dreamer.action_sampler_fn(torch.FloatTensor(obs).unsqueeze(0), state, 1.0)
+            action, _, state, = dreamer.action_sampler_fn(torch.FloatTensor(obs).unsqueeze(0), state, dreamer.explore)
             #action = action.squeeze(0).numpy()
             '''
             Already have noise in the implementation
@@ -216,6 +230,9 @@ def train(
             # action = agent.act(obs) + action_noise
             action = np.clip(action, -1.0, 1.0)  # to account for the noise
             '''
+            
+            if dreamer.in_duckietown:
+                obs = np.transpose(obs, (1,2,0))
             action = action.squeeze(0).cpu().numpy()
             next_obs, reward, done, info = curr_env.step(action)
             replay_buffer.add(obs, action, next_obs, reward, done)
