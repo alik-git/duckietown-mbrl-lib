@@ -120,7 +120,7 @@ The PlaNet models follow a Partially Observable Markov Decision Process(POMDP). 
 * Encoder : $$s_t \sim q(s_t \mid o_{\leq t},a_{\leq t})$$
 * Decoder : $$o_t \sim p(o_t \mid s_{t},a_{t-1})$$
 * Reward : $$r_t \sim p(r_t \mid s_t)$$
-* $$\gamma \text{ the discount factor } \gamma \in [0,1]$$
+* Discount : $$ \gamma \in [0,1]$$
 
 The rest of the details are outlined for the RSSM representation in comparsion to deterministic and stochastic models is shown in figure \ref{fig:planet_rssm}.
 
@@ -257,7 +257,7 @@ Dreamer trying to do ... something in Duckietown:
 
 Dreamer learning to model Cheetah in Mujoco:
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-73--VmlldzoxOTE2MDgx?highlightShare" style="border:none;height:850px;width:100%">
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-73--VmlldzoxOTE2MDgx?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
 
 
