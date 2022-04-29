@@ -33,6 +33,7 @@ states($s_t$), actions($$a_t$$) and observations($o_t$)
 - [Project Method](#project-method)
   - [Dreamer](#dreamer)
   - [Dreamer training](#dreamer-training)
+  - [Dreamer optimization](#dreamer-optimization)
   - [Dreamer evaluation](#dreamer-evaluation)
 - [New skills we learned](#new-skills-we-learned)
   - [What we learned with Dreamer](#what-we-learned-with-dreamer)
@@ -202,13 +203,23 @@ $$loss_{actor} = -\frac{1}{N}\sum \gamma * (returns_{\lambda})$$
 
 and for the critic:
 
-$$pred_{values} =\frac{1}{N}\sum ValueModel(features_{imagined}.detach()) \\
-target = returns_{\lam$$
+$$pred_{values} = ValueModel(features_{imagined}.detach()) \\
+target = \text{stop-gradient}(returns_{\lambda})$$
 
-$$loss_{critic} = $$
+$$loss_{critic} = -\frac{1}{N}\sum \gamma * \log(prob(pred_{values}(target))$$
 
+
+### Dreamer optimization
+
+Here, we use an Adam optimizer for each loss, so we end up with the following: 
+
+$$Adam_model = opt(model_loss) \\
+Adam_value = opt(critic_loss)\\
+Adam_value = opt(critic_loss)$$
 
 ### Dreamer evaluation 
+
+For evaluating Dreamer, we 
 
 ## New skills we learned
 
@@ -251,7 +262,7 @@ Dreamer Observation Loss
 
 
 
-<!-- <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:1500px;width:100%"> </iframe> -->
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:1500px;width:100%"> </iframe>
 
 <!-- View only:
 
