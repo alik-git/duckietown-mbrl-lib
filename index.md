@@ -116,11 +116,11 @@ $$\ln{p}(o_{1:T}  \mid a_{1:T}) = \ln \int \prod_t p(s_t\mid s_{t-1},a_{t-1})p(o
 
 The PlaNet models follow a Partially Observable Markov Decision Process(POMDP). It is built on a finite sets of: states($s_t$), actions($a_t$) and observations($o_t$).
 
-* Dynamics model : $s_t \sim p(s_t \mid s_{t-1},a_{t-1})$
-* Encoder : $s_t \sim q(s_t \mid o_{\leq t},a_{\leq t})$
-* Decoder : $o_t \sim p(o_t \mid s_{t},a_{t-1})$
-* Reward : $r_t \sim p(r_t \mid s_t)$
-* $\gamma$ the discount factor $\gamma \in [0,1]$
+* Dynamics model : $$s_t \sim p(s_t \mid s_{t-1},a_{t-1})$$
+* Encoder : $$s_t \sim q(s_t \mid o_{\leq t},a_{\leq t})$$
+* Decoder : $$o_t \sim p(o_t \mid s_{t},a_{t-1})$$
+* Reward : $$r_t \sim p(r_t \mid s_t)$$
+* $$\gamma \text{ the discount factor } \gamma \in [0,1]$$
 
 The rest of the details are outlined for the RSSM representation in comparsion to deterministic and stochastic models is shown in figure \ref{fig:planet_rssm}.
 
