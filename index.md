@@ -184,13 +184,13 @@ $$loss_{model} = loss_{rew} + loss_{img} + loss_{KL} * KLdiv_{const}$$
 
 First, we use the dynamics model to imagine ahead a few trajectories:
 
-$$features_{imagined} = dynamics(stopgrad(s_\tau), imaginehorizon)$$
+$$features_{imagined} = dynamics(s_\tau.detach(), imaginehorizon)$$
 
 The actor loss is the loss from the actor network, which is described in the following, using the $$\lambda-return$$ which is such that: $$\text{fixed 1-step return if : } \lambda = 0 \\ \text{Monte Carlo return if: } \lambda = 1$$
 
 Such that our reward model gives us:
 
-$$rewards = \frac{1}{N}\sum model_{rew}(features_{imagined})$$
+$$rewards = \frac{1}{N}\sum DenseRewNet_\theta(features_{imagined})$$
 
 $$values = \frac{1}{N}\sum ValueModel(features_{imagined})$$
 
@@ -202,7 +202,8 @@ $$loss_{actor} = -\frac{1}{N}\sum \gamma * (returns_{\lambda})$$
 
 and for the critic:
 
-$$pred_{values} = $$
+$$pred_{values} =\frac{1}{N}\sum ValueModel(features_{imagined}.detach()) \\
+target = returns_{\lam$$
 
 $$loss_{critic} = $$
 
@@ -250,7 +251,7 @@ Dreamer Observation Loss
 
 
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:1500px;width:100%"> </iframe>
+<!-- <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:1500px;width:100%"> </iframe> -->
 
 <!-- View only:
 
@@ -266,7 +267,7 @@ Dreamer Observation Loss
     Provide something to help me give feedback on what I would do to improve this method or debug issues.
 
 
-<!-- PlaNet learning how to turn (almost):
+PlaNet learning how to turn (almost):
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-83--VmlldzoxOTE2MDQz?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
@@ -290,7 +291,7 @@ Dreamer trying to do ... something in Duckietown:
 
 Dreamer learning to model Cheetah in Mujoco:
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-73--VmlldzoxOTE2MDgx?highlightShare" style="border:none;height:850px;width:100%"> </iframe> -->
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-73--VmlldzoxOTE2MDgx?highlightShare" style="border:none;height:850px;width:100%"> </iframe> 
 
 
 
