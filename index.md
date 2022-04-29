@@ -182,9 +182,17 @@ and finally combine image loss, reward loss, and KL loss with a KL coeff to get 
 $$loss_{model} = loss_{rew} + loss_{img} + loss_{KL} * KLdiv_{const}$$
 
 
+First, we use the dynamics model to imagine ahead a few trajectories:
+
+$$features_{imagined} = dynamics(stopgrad(s_\tau), imaginehorizon)$$
+
 The actor loss is the loss from the actor network, which is described in the following, using the $$\lambda-return$$ which is such that: $$\text{fixed 1-step return if : } \lambda = 0 \\ \text{Monte Carlo return if: } \lambda = 1$$
 
-$$\lambda-returns = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}imagine_{N}^{H}(s_\tau)$$
+Such that our reward model gives us:
+
+$$rews = -\frac{1}{N}\sum model_{rew}(features_{imagined})$$
+
+$$\lambda-returns = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
 
 Such that the actor loss is (where gamma is a the discount factor):
 
@@ -242,9 +250,9 @@ Dreamer Observation Loss
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
 
-View only:
+<!-- View only:
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Results-and-stuff--VmlldzoxOTE2MTQy?accessToken=0yrkv2r1iuphg2g4fi6het7gsfeumyqmkn2r5fq63q3e7aiedbw6smpux1uiudpo" style="border:none;height:500px;width:100%"> </iframe>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Results-and-stuff--VmlldzoxOTE2MTQy?accessToken=0yrkv2r1iuphg2g4fi6het7gsfeumyqmkn2r5fq63q3e7aiedbw6smpux1uiudpo" style="border:none;height:500px;width:100%"> </iframe> -->
 
 
 
