@@ -11,7 +11,9 @@ ___
 
 ___
 
+_If you'd like to contribute to this page, you can do so via a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) through our [github repo](https://github.com/alik-git/duckietown-mbrl-lib), just edit the [index.md file](https://github.com/alik-git/duckietown-mbrl-lib/blob/gh-pages/index.md) on the [gh-pages branch](https://github.com/alik-git/duckietown-mbrl-lib/tree/gh-pages)._
 
+___
 
 
 **Abstract**
@@ -51,6 +53,7 @@ Model-based reinforcement learning (MBRL) algorithms have various sub-components
 - [Conclusions](#conclusions)
 - [Work Division](#work-division)
 - [Acknowledgments](#acknowledgments)
+- [References](#references)
 
 
 ## Introduction 
@@ -414,17 +417,17 @@ Student Name: Paul focused more on the Dreamer implementation.
 
 ## Acknowledgments
 
-A lot of inspiriation and the implementation almost directly ported (but heavily modified) from : https://github.com/chamorajg/pl-dreamer and https://github.com/danijar/dreamer
+Our code is based entirely within facebook research's [MBRL-Lib toolbox](https://github.com/facebookresearch/mbrl-lib). We also use their PlaNet implementation as is. 
 
+The Dreamer algorithm was first presented by [Danijar Hafner](https://danijar.com/) and colleagues in the [Dream to Control paper](https://danijar.com/project/dreamer/).
 
+For our project's implementation of Dreamer, we sourced a lot of code from Chandramouli Rajagopalan's [excellent pytorch implementation of Dreamer](https://github.com/chamorajg/pl-dreamer).
 
+We used the [Duckietown environment](https://www.duckietown.org/platform) to evaluate our approach. Duckietown is a modular robotics and AI ecosystem, part of which is a driving simulation that's well suited for reinforcement learning.
 
+## References
 
-
-
-
-
-
+We've included links to the original work whenever we've referenced something in this report, you should just be able to click the link and find what you need!
 
 
 
