@@ -201,6 +201,15 @@ To run an experiment you can use commands in the following format:
 Here is another example of a command with shorter episodes:
 
     python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_cheetah_run algorithm.test_frequency=2 overrides.sequence_length=10 overrides.batch_size=10
+
+To run Dreamer, use this command for short episodes:
+    
+    python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=dreamer_duckietown algorithm.test_frequency=2 algorithm.num_episodes=2 overrides.sequence_length=10 overrides.batch_size=10 overrides.model_learning_rate=1e-4
+
+and this command for long episodes:
+
+    python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_cheetah_run algorithm.test_frequency=2 algorithm.num_episodes=1500 overrides.sequence_length=80 overrides.batch_size=50 +overrides.model_learning_rate=1e-4
+
     
 You will see the output of your run in the terminal as well as in a results file created by Hydra located by default at `.exp/planet/default/duckietown_gym_env/yyyy.mm.dd/hhmmss`; you can change the root directory (`./exp`) by passing 
 `root_dir=path-to-your-dir`, and the experiment sub-folder (`default`) by
