@@ -1,6 +1,22 @@
+###################
+##### FOR GLEN ####
+###################
+# This implementation of PlaNet servers as the world model for our Dreamer
+# implementation.
+###################
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+###################
+##### FOR GLEN ####
+###################
+# This is the PlaNet implementation we ported from Chandramouli Rajagopalan’s 
+# pytorch implementation of Dreamer here https://github.com/chamorajg/pl-dreamer 
+# which has helper functions for the non-MBRL-Lib PlaNet, and all of the networks 
+# (Action and Value Nets as well) and are siloed from the dependencies for QA 
+# of this version of PlaNet outside of MBRL-Lib PlaNet.
+###################
 import torch.distributions as td
 
 import numpy as np

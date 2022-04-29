@@ -1,3 +1,9 @@
+###################
+##### FOR GLEN ####
+###################
+# This is just a script to run hyperparameter sweeps using weights and biases.
+###################
+
 import os
 import sys
 

@@ -1,5 +1,10 @@
 # @package _group_
-# just a copy of the planet yaml for now
+###################
+##### FOR GLEN ####
+###################
+# This is the config file to run Dreamer on Cheetah Run. For now we mostly just
+# use the same values as PlaNet.
+###################
 env: "dmcontrol_cheetah_run"  # used to set the hydra dir, ignored otherwise
 
 env_cfg:

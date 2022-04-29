@@ -1,4 +1,11 @@
 # @package _group_
+
+###################
+##### FOR GLEN ####
+###################
+# This is the config file for the "planning parts" of Dreamer 
+###################
+
 name: "dreamer"
 
 agent:

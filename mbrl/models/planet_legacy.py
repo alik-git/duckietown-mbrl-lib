@@ -1,3 +1,17 @@
+###################
+##### FOR GLEN ####
+###################
+# This implementation of PlaNet servers as the world model for our Dreamer
+# implementation.
+
+###################
+##### FOR GLEN ####
+###################
+# This was used to do QA on the PlaNet implementation we ported from 
+# Chandramouli Rajagopalan’s pytorch implementation of Dreamer here 
+# https://github.com/chamorajg/pl-dreamer , which has helper functions for the 
+# non-MBRL-Lib PlaNet, but do not get used with MBRL-Lib or Duckietown. 
+######################################
 import torch
 import numpy as np
 from typing import Tuple, Any, Union, Optional, Dict

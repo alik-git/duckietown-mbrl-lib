@@ -1,4 +1,11 @@
 # @package _group_
+###################
+##### FOR GLEN ####
+###################
+# This is the config file for the "model parts" of Dreamer. Again this mostly
+# borrows settings from the MBRL-Lib PlaNet and the recommended config from
+# Chandramouli Rajagopalan’s pytorch implementation of Dreamer.
+###################
 _target_: mbrl.models.DreamerModel
 obs_shape: [3, 64, 64]
 # obs_encoding_size: 1024

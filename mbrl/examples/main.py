@@ -82,5 +82,9 @@ def run(cfg: omegaconf.DictConfig):
 
 
 if __name__ == "__main__":
-    wandb.init(project="MBRL_Duckyt", entity="mbrl_ducky", monitor_gym=True)
+
+    wandb.init(
+        project="<Your W&B Project Name Here>",
+        entity="<Your W&B Username Here>"
+    )
     run()

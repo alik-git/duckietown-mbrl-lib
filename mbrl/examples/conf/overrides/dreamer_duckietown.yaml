@@ -1,4 +1,10 @@
 # @package _group_
+###################
+##### FOR GLEN ####
+###################
+# This is the config file to run Dreamer on Duckietown. For now we mostly just
+# use the same values as PlaNet.
+###################
 env: "duckietown_gym_env"  # used to set the hydra dir, ignored otherwise
 
 # These settings are based on the cheetah run yaml file

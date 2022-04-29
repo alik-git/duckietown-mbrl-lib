@@ -1,3 +1,10 @@
+###################
+##### FOR GLEN ####
+###################
+# This file is basically a copy of MBRL-Lib's PlaNet, modified to accommodate
+# the dreamer method.
+###################
+
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #
 # This source code is licensed under the MIT license found in the
@@ -109,7 +116,30 @@ def train(
     model_env = ModelEnv(env, dreamer, no_termination, generator=rng)
     trainer = ModelTrainer(dreamer, logger=logger, optim_lr=1e-3, optim_eps=1e-4)
 
+    ###################
+    ##### FOR GLEN ####
+    ################### 
+    # 
     # Some thoughts on how we were approaching this problem
+
+    # This library has a function called
+    # create_trajectory_optim_agent_for_model() that is used to create an agent
+    # (an agent that essentially uses CEM planning) given a world model.
+    # 
+    # Example: agent =
+    # create_trajectory_optim_agent_for_model(model_env,cfg.algorithm.agent) 
+    # 
+    # But in our case, dreamer is the world model i.e. model_env, but Dreamer
+    # also includes an "agent" in the form of an actor and critic network, and
+    # Dreamer therefore doesn't need CEM planning.
+    #
+    # So instead of doing it the "MBRL-Lib" way and creating an agent, we just
+    # use the world model i.e. Dreamer to sample actions from. This doesn't sit
+    # well with the structure of this library so in future work we wil try to
+    # separate the model part of Dreamer (which is just PlaNet) and the
+    # agent/planning part of Dreamer, so that it fits better with this library.
+    
+
     # Create Dreamer Agent (Action and Value model), are these needed for this to operate properly?
     # This agent rolls outs trajectories using ModelEnv, which uses planet.sample()
     # to simulate the trajectories from the prior transition model
@@ -206,7 +236,7 @@ def train(
                 pass
             
             # want to do 
-            #dreamer.update(...)
+            # func dreamer.update(...)
             #   planet.update(..)
             #   actor_net.update(..)
             #   value_net.updare(..)
@@ -222,6 +252,7 @@ def train(
             '''
             # want to do (kinda)
             # action, _ = dreamer.policy(obs)
+            #action sampler for Dreamer wants tensors with a batch dimension
             action, _, state, = dreamer.action_sampler_fn(torch.FloatTensor(obs).unsqueeze(0), state, dreamer.explore)
             #action = action.squeeze(0).numpy()
             '''
@@ -233,7 +264,7 @@ def train(
             
             if dreamer.in_duckietown:
                 obs = np.transpose(obs, (1,2,0))
-            action = action.squeeze(0).cpu().numpy()
+            action = action.squeeze(0).cpu().numpy() #env likes numpy arrays for actions unbatched
             next_obs, reward, done, info = curr_env.step(action)
             replay_buffer.add(obs, action, next_obs, reward, done)
             episode_reward += reward

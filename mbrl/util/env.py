@@ -1,3 +1,9 @@
+###################
+##### FOR GLEN ####
+###################
+# So here we just added a fixed start point for the Duckietown environment. That
+# required modifying the Duckietown environment as well. 
+###################
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #
 # This source code is licensed under the MIT license found in the

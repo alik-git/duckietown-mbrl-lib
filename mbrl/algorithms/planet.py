@@ -1,3 +1,8 @@
+###################
+##### FOR GLEN ####
+###################
+# We added video recording for the Duckietown environments and better logging.
+###################
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #
 # This source code is licensed under the MIT license found in the

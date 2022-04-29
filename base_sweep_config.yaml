@@ -1,3 +1,11 @@
+###################
+##### FOR GLEN ####
+###################
+# This is just a file to help set up hyperparameter sweeps using weights and
+# biases. You can pick and choose parameters and specify distributions to sample
+# from for a search.
+###################
+
 command:
 - python
 - ${program}

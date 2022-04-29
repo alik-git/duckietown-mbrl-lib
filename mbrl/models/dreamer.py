@@ -1,3 +1,12 @@
+###################
+##### FOR GLEN ####
+###################
+# This file holds the bulk of the Dreamer implementation. Most of the code was
+# inspired from two public implementations. The original Dreamer author's tf
+# implementation here https://github.com/danijar/dreamer and Chandramouli
+# Rajagopalan’s pytorch implementation of Dreamer here
+# https://github.com/chamorajg/pl-dreamer.
+###################
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
