@@ -20,43 +20,43 @@ ___
 
 Model-based reinforcement learning (MBRL) algorithms have various sub-components that each need to be carefully selected and tuned, which makes it difficult to quickly apply existing models/approaches to new tasks. In this work, we aim to integrate the Dreamer algoithm into an existing popular MBRL toolbox, and tune the Dreamer-v1 and PlaNet algorithms to the Gym-Duckietown environment. We also provide trained models and code to to use as a baseline for further development. Additionally, we propose an improved reward function for RL training in Gym-Duckietown, with code to allow easy analysis and evaluation of RL models and reward functions.
 
-- [Introduction](#introduction)
-- [Related Work](#related-work)
-  - [Model Based vs Model Free RL](#model-based-vs-model-free-rl)
-  - [MBRL-Lib](#mbrl-lib)
-  - [Gym-Duckietown](#gym-duckietown)
-  - [Dream to Control (Dreamer)](#dream-to-control-dreamer)
-- [Background](#background)
-  - [Reinforcement Learning](#reinforcement-learning)
-  - [Model-Based Reinforcement Learning](#model-based-reinforcement-learning)
-  - [PlaNet for Gym-Duckietown](#planet-for-gym-duckietown)
-- [Project Method](#project-method)
-  - [Duckietown Reward function](#duckietown-reward-function)
-  - [Dreamer](#dreamer)
-  - [Dreamer training](#dreamer-training)
-  - [Dreamer optimization](#dreamer-optimization)
-  - [Dreamer evaluation](#dreamer-evaluation)
-- [New skills we learned](#new-skills-we-learned)
-  - [What we learned with Dreamer](#what-we-learned-with-dreamer)
-  - [What we learned about driving and Duckietown](#what-we-learned-about-driving-and-duckietown)
-  - [Using a pre-built library to start with](#using-a-pre-built-library-to-start-with)
-  - [What we learned about logging and organization](#what-we-learned-about-logging-and-organization)
-- [Experiments and Analysis](#experiments-and-analysis)
-  - [Results:](#results)
-- [Video Results](#video-results)
-  - [PlaNet learning how to turn (almost):](#planet-learning-how-to-turn-almost)
-  - [PlaNet learning to drive backward:](#planet-learning-to-drive-backward)
-  - [Planet learning to jitter for speed reward:](#planet-learning-to-jitter-for-speed-reward)
-  - [Dreamer learning to model Duckietown:](#dreamer-learning-to-model-duckietown)
-  - [Dreamer trying to do ... something in Duckietown:](#dreamer-trying-to-do--something-in-duckietown)
-  - [Dreamer learning to model Cheetah in Mujoco:](#dreamer-learning-to-model-cheetah-in-mujoco)
-- [Conclusions](#conclusions)
-- [Work Division](#work-division)
-- [Acknowledgments](#acknowledgments)
-- [References](#references)
+- [1. Introduction](#1-introduction)
+- [2. Related Work](#2-related-work)
+  - [2.1. Model Based vs Model Free RL](#21-model-based-vs-model-free-rl)
+  - [2.2. MBRL-Lib](#22-mbrl-lib)
+  - [2.3. Gym-Duckietown](#23-gym-duckietown)
+  - [2.4. Dream to Control (Dreamer)](#24-dream-to-control-dreamer)
+- [3. Background](#3-background)
+  - [3.1. Reinforcement Learning](#31-reinforcement-learning)
+  - [3.2. Model-Based Reinforcement Learning](#32-model-based-reinforcement-learning)
+  - [3.3. PlaNet for Gym-Duckietown](#33-planet-for-gym-duckietown)
+- [4. Project Method](#4-project-method)
+  - [4.1. Duckietown Reward function](#41-duckietown-reward-function)
+  - [4.2. Dreamer](#42-dreamer)
+  - [4.3. Dreamer training](#43-dreamer-training)
+  - [4.4. Dreamer optimization](#44-dreamer-optimization)
+  - [4.5. Dreamer evaluation](#45-dreamer-evaluation)
+- [5. New skills we learned](#5-new-skills-we-learned)
+  - [5.1. What we learned with Dreamer](#51-what-we-learned-with-dreamer)
+  - [5.2. What we learned about driving and Duckietown](#52-what-we-learned-about-driving-and-duckietown)
+  - [5.3. Using a pre-built library to start with](#53-using-a-pre-built-library-to-start-with)
+  - [5.4. What we learned about logging and organization](#54-what-we-learned-about-logging-and-organization)
+- [6. Experiments and Analysis](#6-experiments-and-analysis)
+  - [6.1. Results:](#61-results)
+- [7. Video Results](#7-video-results)
+  - [7.1. PlaNet learning how to turn (almost):](#71-planet-learning-how-to-turn-almost)
+  - [7.2. PlaNet learning to drive backward:](#72-planet-learning-to-drive-backward)
+  - [7.3. Planet learning to jitter for speed reward:](#73-planet-learning-to-jitter-for-speed-reward)
+  - [7.4. Dreamer learning to model Duckietown:](#74-dreamer-learning-to-model-duckietown)
+  - [7.5. Dreamer trying to do ... something in Duckietown:](#75-dreamer-trying-to-do--something-in-duckietown)
+  - [7.6. Dreamer learning to model Cheetah in Mujoco:](#76-dreamer-learning-to-model-cheetah-in-mujoco)
+- [8. Conclusions](#8-conclusions)
+- [9. Work Division](#9-work-division)
+- [10. Acknowledgments](#10-acknowledgments)
+- [11. References](#11-references)
 
 
-## Introduction 
+## 1. Introduction 
 
 
     1 [4 pts] Project Introduction (2 paragraphs, with a figure)
@@ -70,7 +70,7 @@ In this work we attempt to use two MBRL algorithms, Dreamer-v1 and PlaNet, to le
 
 ![Image](figures/figure1.png)
 
-##  Related Work
+##  2. Related Work
 
     2 [2 pts] What is the related work? Provide references:(1-2 paragraph(s))
     Give a description of the most related work. How is your work similar or different from the most related work?
@@ -79,20 +79,20 @@ In this work we attempt to use two MBRL algorithms, Dreamer-v1 and PlaNet, to le
 <!-- ### RL, MBRL, PlaNet, what we can improve on PlaNet
 *Dreamer is different because it uses PlaNet as a world model, and gets value estimates with respect to the world model, and then takes actions with respect to those estimates -->
 
-### Model Based vs Model Free RL
+### 2.1. Model Based vs Model Free RL
 
 Reinforcement learning is an active field of research in autonomous vehicles. Model-based approaches are used less frequently than model-free approaches since model-free approaches have had better performance in the past and as a result it is easier to find existing implementations. 
 
 The largest advantage that model based approaches offer is their superior sample complexity. That is, model based approaches can use orders of magnitude less data or interaction with the external environment compared to model-free methods. This is because model based methods can train the policy on the internal model of the environment as opposed to the external environment itself. Additionally, another advantage that model-based methods have is that the learned model of the environment can be task agnostic, meaning that it can be used for any task that requires predicting the state of the environment in the future.
 
 
-### MBRL-Lib
+### 2.2. MBRL-Lib
 
 There are many available open source implementations of popular model-free approaches [OpenAI Baselines](https://github.com/openai/baselines) [PyTorchRL](https://modelzoo.co/model/pytorch-rl) and model-based approaches [Baconian MBRL](https://arxiv.org/pdf/1904.10762.pdf). During our review, we found the MBRL-Lib toolbox [MBRL-lib](https://arxiv.org/pdf/2104.10159.pdf) to be most useful. 
 
 MBRL-Lib contains implementations of various popular model-based approaches, but more importantly it is designed to be modular and compatible with a wide array of environments; and makes heavy use of configuration files to minimize the amount of new code needed to tweak an existing approach. Integrating the Gym-Duckietown environment to work with this toolkit would allow users to easily experiment with and evaluate a variety of model based RL approaches in the Duckietown simulation.
 
-### Gym-Duckietown
+### 2.3. Gym-Duckietown
 
 
 Gym-Duckietown, a self-driving car simulator for the Duckietown universe already built as an OpenAI Gym environment is the ideal  candidate to make available for use with the model-based approaches provided by MBRL-Lib along with Dreamer.
@@ -100,13 +100,13 @@ Gym-Duckietown, a self-driving car simulator for the Duckietown universe already
 Gym-Duckietown is different from most environments previously used by model-based approaches. It has significantly more complex dynamics than the standard OpenAI Gym environments. Consider for example that the Cheetah environment only consists of one (albeit complex) object in a plain background with the camera always tracking it. Compared to Gym-Duckietown, where the camera is fixed on the car which moves through the scene, drastically changing the objects found in different observations.
 Our results indicate that while MBRL methods have the potential to perform well in Gym-Duckietown, they need to be carefully tuned and modified to achieve results comparable to those of the current baselines.
 
-### Dream to Control (Dreamer)
+### 2.4. Dream to Control (Dreamer)
 
 To observe how Duckietown scales with different and more performant MBRL algorithms and to facilitate learning, one of the goals in this project is to develop an implementation of [Dreamer](https://arxiv.org/pdf/1912.01603.pdf), which does not exist in MBRL-Lib. Similar to PlaNet, Dreamer uses a recurrent state space model (RSSM) to represent the underlying MDP with partial observability by using PlaNet as a world model. Where it differs from PlaNet is in the model fitting section and the lack of a planning section. With Dreamer, the model fitting part is broken into a dynamics learning section and a behavior learning section which does rollouts of imagined trajectories, and finally updates parameters for the action model, and value model using gradients of value estimates of imagined states for the learning objective. Since these trajectories are imagined, the authors utilize reparameterization for continuous actions and states. Lastly, Dreamer computes the state from history during the environment interaction step, with noise added to the action for exploration.
 
 In the paper, the authors run Dreamer on the DeepMind control suite, similar to PlaNet. However, since the original implementation is in TensorFlow, it will need to be re-implemented in PyTorch for direct comparison to other algorithms in MBRL-Lib.
 
-## Background
+## 3. Background
 
     3 [2 pts] What background/math framework have you
     used? Provide references: (2-3 paragraph(s) + some math)
@@ -115,18 +115,18 @@ In the paper, the authors run Dreamer on the DeepMind control suite, similar to 
     You want to provide enough information for the average student in the class to understand the background.
 
 
-### Reinforcement Learning
+### 3.1. Reinforcement Learning
 
 ![Image](figures/rl.png)
 
 [_From Spinning Up RL_](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html): The main characters of RL are the agent and the environment. The environment is the world that the agent lives in and interacts with. At every step of interaction, the agent sees a (possibly partial) observation of the state of the world, and then decides on an action to take. The environment changes when the agent acts on it, but may also change on its own.
 
 
-### Model-Based Reinforcement Learning
+### 3.2. Model-Based Reinforcement Learning
 
 To setup the reinforcement learning problem from a model-based reinforcement learning (MBRL) perspective, we adhere to the Markov decision process formulation [MDP Bellman](https://apps.dtic.mil/sti/pdfs/AD0606367.pdf), where we use state $$s \in \mathcal{S}$$ and actions $$a \in \mathcal{A}$$ with reward function $$r(s,a)$$ and the dynamics or transition function $$f_\theta$$, such that $$s_{t+1} = f_{\theta}(s_t, a_t)$$ for deterministic transitions, and stochastic transitions are given by the conditional $$f_\theta(s_{t+1}\mid s_t, a_t) = \mathbb{P}(s_{t+1}\mid s_t, a_t, ; \theta)$$ and learning the forward dynamics is akin to doing a fitting of approximation $$\hat{f}$$ to the real dynamics $$f$$ given real data from the system.
 
-### PlaNet for Gym-Duckietown
+### 3.3. PlaNet for Gym-Duckietown
 
 Of the important contributions of [PlaNet](https://arxiv.org/pdf/1811.04551.pdf), one of them is the recurrent state space model (RSSM). The RSSM has both stochastic and deterministic components and it was shown in PlaNet to greatly improve results compared to purely stochastic or deterministic models on complicated task.
 To bring the input images to the latent space, we need an encoder. Since we are using images, a convolution neural net is perfect for the task.
@@ -147,7 +147,7 @@ The PlaNet models follow a Partially Observable Markov Decision Process(POMDP). 
 
 The rest of the details are outlined for the RSSM representation in comparsion to deterministic and stochastic models is outlined in the paper.
 
-##  Project Method
+##  4. Project Method
 
     4 [6 pts] Project Method, How will the method work (1-2 pages + figure(s) + math + algorithm)
     Describe your method. 
@@ -155,7 +155,7 @@ The rest of the details are outlined for the RSSM representation in comparsion t
     Make sure to include figures, math, or algorithms to help people understand.
 
 
-### Duckietown Reward function
+### 4.1. Duckietown Reward function
 
 The reward function in Duckietown is as follows (comments added by me):
 
@@ -182,7 +182,7 @@ reward += distance_traveled*50
 ```
 It was quite time consuming to try to fix the reward function as you can't use the reward as a metric anymore. A "high reward" doesn't exactly mean your model is learning more intelligent behavior. Evaluating the reward function meant running a few experiments after each change and qualitatively observing the behavior of the policy.
 
-### Dreamer
+### 4.2. Dreamer
 
 Given that the MBRL-lib only includes PlaNet and not Dreamer, we can take advantage of the fact that Dreamer is heavily inspired from PlaNet for our Dreamer implementation. For example the "model" in PlaNet, the recurrent state model can be used as the learned world model for Dreamer. Similarly, in departure from PlaNet, rather than a CEM for the best action sequence under the model for planning, Dreamer uses a dense action network parameterized by phi and the dense value network parameterized by psi, so these components can be "added" to the basic PlaNet structure.
 
@@ -206,7 +206,7 @@ $$V_\lambda(s_\tau) = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau
 
 This helps Dreamer do better with longer-term predictions of the world, over shortsightedness with other types of dynamics models for behavior learning. Since Dreamer disconnects the planning and action by training an actor and value network and uses analytic gradients and reparameterization, it is more efficient than PlaNet which searches the best actions among many predictions for different action sequences. This motivates the implementation of Dreamer to compare to PlaNet with potential performance improvements with a similar number of environment steps. The policy is trained via using the analytical gradient $$\nabla_\phi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} V_\lambda(s_\tau))$$ from stochastic backpropagation, which in this case becomes a deterministic node where the action is returned, with the value network being updated with the gradient  $$\nabla_\psi \mathbb{E}(q_\theta q_\phi(\sum_{n=\tau}^{t+H} \frac{1}{2}\| v_\psi(s_\tau) - V_\lambda(s_\tau))\| ^2$$ after imagined value estimates are computed. All of this happens in the update steps for behavior and dynamics learning. Finally, in an environment interaction time step, the agent gets states from its history and returns actions from the action network, and value model estimates the imagined rewards that the action model gets in each state. These are trained cooperatively in a policy iteration fashion.
 
-### Dreamer training
+### 4.3. Dreamer training
 
 For training the first version of the Dreamer prototype, we used the Cheetah environment to compare directly to the built-in library PlaNet implementation with an action noise of $$\epsilon = 0.3$$ like the original paper. The model, actor, and critic losses are logged from their respective networks. The losses, and their updates are described in more detail in the following sections. 
 
@@ -253,7 +253,7 @@ target = \text{stop-gradient}(returns_{\lambda})$$
 
 $$loss_{critic} = -\frac{1}{N}\sum \gamma * \log(prob(pred_{values}(target)))$$
 
-### Dreamer optimization
+### 4.4. Dreamer optimization
 
 Here, we use an Adam optimizer for each loss, so we end up with the following: 
 
@@ -263,15 +263,15 @@ Adam_{critic} = opt(lr=\text{lr}_{critic})$$
 
 Then we perform an `optimizer.step()` with all of them (Note: Doing this in MBRL-lib is more difficult than it should be!). We nested them all under a dreamer-update function, but diverged from the philosophy of the library to do so. MBRL-Lib casts the MBRL/RL problem as the dynamics being a standard model and supervised-learning style dynamics fitting as trajectory or optimization update. Given that Dreamer breaks apart the model learning, behavior learning, and environment interaction steps, this simplification leads to a training loop not being able to fully support Dreamer. To this end, we forced the Dreamer code into the dynamics model, and allowed the library to think it was performing a singular update when it was actually performing multiple updates. This means however that our implementation is a little crude, and there is potential for future projects where we redesign the Dreamer implementation to be more fitting with the original library.
 
-### Dreamer evaluation 
+### 4.5. Dreamer evaluation 
 We run a test period of 3 episodes in most cases, sampling actions from the action model and passing them to the environment without any learning. In addition, to evaluate Dreamer, we return only the $$loss_{reward}, loss_{img}, loss_{KL}$$ .
 
-## New skills we learned
+## 5. New skills we learned
 
     5 [2 pts] What new skills have you(s) learned from this project?
     List some of the technical skills you are learning from studying this method.
 
-### What we learned with Dreamer
+### 5.1. What we learned with Dreamer
 
 - Dreamer fundamentally different than other MBRL algorithms in the sense that there is also a policy being learned as opposed to just a world model.
 
@@ -279,17 +279,17 @@ We run a test period of 3 episodes in most cases, sampling actions from the acti
 
 - Goal in mind was to do dreamer implementation that fits well with MBRL-Lib, potentially to submit a pull request to the library. But we decided to first get a prototype implementation done as a proof of concept that Dreamer can be trained using the env and training loop of the library.
 
-### What we learned about driving and Duckietown 
+### 5.2. What we learned about driving and Duckietown 
 
 - The reward function was originally specified with negative rewards for driving on the wrong side of the road, which was found to be a compounding issue with random spawning. Frequently, the agent would spawn in locations with no way to obtain positive rewards, and the episode terminates when the agent goes off track. So, the agent would avoid the negative rewards from a bad spawning location and often go straight off-track. To stabilize learning, we implemented fixed spawn locations and the reward is now tuned reward distance traveled as opposed to speed. It was also discovered that there are multiple wrappers doing pre-processing on the observations for stacking, which means exporting these as "raw images" is not possible without unrolling all of the wrappers given the continuous control suites, making it difficult to save videos of policy behavior and evaluate learned policies outside of MBRL-Lib.
 
-### Using a pre-built library to start with
+### 5.3. Using a pre-built library to start with
 
 - Easy-to-use libraries might seem like less work to use for simple implementations, but complex algorithms or environments expect more flexibility than "easy" libraries provide.
   
 - Also, using a library means committing to the creator's design philosophy for the project, which may not be suitable for new approaches, especially as the state of the art attempts to be more and more creative.
 
-### What we learned about logging and organization
+### 5.4. What we learned about logging and organization
 
 - It's difficult to compare runs over the long-term, because no matter how meticulous your logging is, the fact that you learn new things about your approach and change your methods means that experiments you ran a while ago will have a different and outdated structure that is unfair to compare with newer runs.
 
@@ -297,7 +297,7 @@ We run a test period of 3 episodes in most cases, sampling actions from the acti
 
 - It can be difficult to share your results, if people need an account with the proprietary tool to view them.
 
-## Experiments and Analysis
+## 6. Experiments and Analysis
 
     6 [8 pts] Experiments and Analysis**
     In this section
@@ -313,7 +313,7 @@ We run a test period of 3 episodes in most cases, sampling actions from the acti
     to learning graphs.
 
 
-### Results:
+### 6.1. Results:
 
 
 
@@ -326,7 +326,7 @@ We run a test period of 3 episodes in most cases, sampling actions from the acti
 
 
 
-## Video Results 
+## 7. Video Results 
 
     7 [2 pts] Video Results
     Include a link to a video of the method so far. 
@@ -334,39 +334,39 @@ We run a test period of 3 episodes in most cases, sampling actions from the acti
     Provide something to help me give feedback on what I would do to improve this method or debug issues.
 
 
-### PlaNet learning how to turn (almost):
+### 7.1. PlaNet learning how to turn (almost):
 
 This run is evidence that PlaNet (although very sporadically) is trying to maximize reward by driving, and doing so by learning behavior that doesn't _just_ exploit the design of the reward function.
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-83--VmlldzoxOTE2MDQz?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
-### PlaNet learning to drive backward:
+### 7.2. PlaNet learning to drive backward:
 
 This run shows that PlaNet learned some unexpected behaviors by driving backwards to increase it's "distance traveled" as opposed to turning. This shows that the model is exploring the action space well towards maximizing reward.
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-48--VmlldzoxOTE2MDUw?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
-### Planet learning to jitter for speed reward:
+### 7.3. Planet learning to jitter for speed reward:
 
 This run shows that PlaNet learned some unexpected behaviors by moving back and forth in place to increase it's "speed" as opposed to turning. This shows that the model is exploring the action space well towards maximizing reward.
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-53--VmlldzoxOTE2MDYw?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
 
-### Dreamer learning to model Duckietown:
+### 7.4. Dreamer learning to model Duckietown:
 
 These reconstructions clearly show that the Dreamer world model is at the very least learning the appearance of the Duckietown environment, if not the dynamics of it. The reconstructions are a lot better than we expected. This shows that current model based have serious potential to achieve good performance for driving in Gym-Duckietown.
 
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
-### Dreamer trying to do ... something in Duckietown:
+### 7.5. Dreamer trying to do ... something in Duckietown:
 
 It is just here to show that learning didn't always occur, we had a lot, and we mean a lot of experiments that were just sporadic behavior.
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-06--VmlldzoxOTE2MDc3?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
-### Dreamer learning to model Cheetah in Mujoco:
+### 7.6. Dreamer learning to model Cheetah in Mujoco:
 
 These results are a baseline to compare against the Duckietown reconstructions.
 
@@ -382,7 +382,7 @@ These results are a baseline to compare against the Duckietown reconstructions.
 </div> -->
 
 
-## Conclusions
+## 8. Conclusions
 
     8 [4 pts] Conclusions
     What have your results indicated?
@@ -403,7 +403,7 @@ Trying to fit in real robot experiments was definitely too much as both Gym-Duck
 
 
 
-## Work Division
+## 9. Work Division
 
     Provide a description on what each group member is working on as part of the project. 
     I recommend each student work on most of the parts of the project so everyone learns about the content.
@@ -415,7 +415,7 @@ Student Name: Ali focused more on infrastructure code for Gym-Duckietown (reward
 Student Name: Paul focused more on the Dreamer implementation.
 
 
-## Acknowledgments
+## 10. Acknowledgments
 
 Our code is based entirely within facebook research's [MBRL-Lib toolbox](https://github.com/facebookresearch/mbrl-lib). We also use their PlaNet implementation as is. 
 
@@ -425,7 +425,7 @@ For our project's implementation of Dreamer, we sourced a lot of code from Chand
 
 We used the [Duckietown environment](https://www.duckietown.org/platform) to evaluate our approach. Duckietown is a modular robotics and AI ecosystem, part of which is a driving simulation that's well suited for reinforcement learning.
 
-## References
+## 11. References
 
 We've included links to the original work whenever we've referenced something in this report, you should just be able to click the link and find what you need!
 
