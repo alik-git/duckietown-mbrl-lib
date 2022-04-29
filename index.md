@@ -40,7 +40,14 @@ Model-based reinforcement learning (MBRL) algorithms have various sub-components
   - [Using a pre-built library to start with](#using-a-pre-built-library-to-start-with)
   - [What we learned about logging and organization](#what-we-learned-about-logging-and-organization)
 - [Experiments and Analysis](#experiments-and-analysis)
+  - [Results:](#results)
 - [Video Results](#video-results)
+  - [PlaNet learning how to turn (almost):](#planet-learning-how-to-turn-almost)
+  - [PlaNet learning to drive backward:](#planet-learning-to-drive-backward)
+  - [Planet learning to jitter for speed reward:](#planet-learning-to-jitter-for-speed-reward)
+  - [Dreamer learning to model Duckietown:](#dreamer-learning-to-model-duckietown)
+  - [Dreamer trying to do ... something in Duckietown:](#dreamer-trying-to-do--something-in-duckietown)
+  - [Dreamer learning to model Cheetah in Mujoco:](#dreamer-learning-to-model-cheetah-in-mujoco)
 - [Conclusions](#conclusions)
 - [Work Division](#work-division)
 - [Acknowledgments](#acknowledgments)
@@ -303,12 +310,12 @@ We run a test period of 3 episodes in most cases, sampling actions from the acti
     to learning graphs.
 
 
-Experiment Results:
+### Results:
 
 
 
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:20000px;width:100%"> </iframe>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:10000px;width:100%"> </iframe>
 
 <!-- View only:
 
@@ -324,39 +331,39 @@ Experiment Results:
     Provide something to help me give feedback on what I would do to improve this method or debug issues.
 
 
-PlaNet learning how to turn (almost):
+### PlaNet learning how to turn (almost):
 
 This run is evidence that PlaNet (although very sporadically) is trying to maximize reward by driving, and doing so by learning behavior that doesn't _just_ exploit the design of the reward function.
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-83--VmlldzoxOTE2MDQz?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
-PlaNet learning to drive backward:
+### PlaNet learning to drive backward:
 
 This run shows that PlaNet learned some unexpected behaviors by driving backwards to increase it's "distance traveled" as opposed to turning. This shows that the model is exploring the action space well towards maximizing reward.
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-48--VmlldzoxOTE2MDUw?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
-Planet learning to jitter for speed reward:
+### Planet learning to jitter for speed reward:
 
 This run shows that PlaNet learned some unexpected behaviors by moving back and forth in place to increase it's "speed" as opposed to turning. This shows that the model is exploring the action space well towards maximizing reward.
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-53--VmlldzoxOTE2MDYw?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
 
-Dreamer learning to model Duckietown:
+### Dreamer learning to model Duckietown:
 
 These reconstructions clearly show that the Dreamer world model is at the very least learning the appearance of the Duckietown environment, if not the dynamics of it. The reconstructions are a lot better than we expected. This shows that current model based have serious potential to achieve good performance for driving in Gym-Duckietown.
 
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-57--VmlldzoxOTE1OTgz?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
-Dreamer trying to do ... something in Duckietown:
+### Dreamer trying to do ... something in Duckietown:
 
 It is just here to show that learning didn't always occur, we had a lot, and we mean a lot of experiments that were just sporadic behavior.
 
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-19-04-06--VmlldzoxOTE2MDc3?highlightShare" style="border:none;height:850px;width:100%"> </iframe>
 
-Dreamer learning to model Cheetah in Mujoco:
+### Dreamer learning to model Cheetah in Mujoco:
 
 These results are a baseline to compare against the Duckietown reconstructions.
 
