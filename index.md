@@ -170,7 +170,7 @@ $$pred_{rew} = DenseRewNet_\theta(features) \\ pred_{img} = decoder_\theta(featu
 
  from the reward model defined by a dense network. We use these networks for losses from the image and reward, shown here (using probabilities from a softmax):
  
- $$loss_{img} = -\frac{1}{N}\sum \log(prob(pred_{rew} (observation)) \\
+ $$\text{(reconstruction)} loss_{img} = -\frac{1}{N}\sum \log(prob(pred_{rew} (observation)) \\
 loss_{rew} = -\frac{1}{N}\sum \log(prob(pred_{img} (rew))$$
 
 and pass the prior distribution and posterior distribution to a KL divergence loss:
@@ -184,13 +184,15 @@ $$loss_{model} = loss_{rew} + loss_{img} + loss_{KL} * KLdiv_{const}$$
 
 The actor loss is the loss from the actor network, which is described in the following, using the $$\lambda-return$$ which is such that: $$\text{fixed 1-step return if : } \lambda = 0 \\ \text{Monte Carlo return if: } \lambda = 1$$
 
-$$\lambda-returns = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
+$$\lambda-returns = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}imagine_{N}^{H}(s_\tau)$$
 
 Such that the actor loss is (where gamma is a the discount factor):
 
 $$loss_{actor} = -\frac{1}{N}\sum \gamma * (\lambda-returns)$$
 
 and for the critic:
+
+$$pred_{values} = $$
 
 $$loss_{critic} = $$
 
@@ -235,7 +237,14 @@ $$loss_{critic} = $$
 
 Dreamer Observation Loss 
 
+
+
+
 <iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
+
+View only:
+
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Results-and-stuff--VmlldzoxOTE2MTQy?accessToken=0yrkv2r1iuphg2g4fi6het7gsfeumyqmkn2r5fq63q3e7aiedbw6smpux1uiudpo" style="border:none;height:500px;width:100%"> </iframe>
 
 
 
