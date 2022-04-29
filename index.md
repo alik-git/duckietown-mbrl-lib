@@ -222,7 +222,7 @@ First, we use the dynamics model to imagine ahead a few trajectories:
 
 $$features_{imagined} = dynamics(s_\tau.detach(), imaginehorizon)$$
 
-The actor loss is the loss from the actor network, which is described in the following, using the $$\lambda-return$$ which is such that: $$\text{fixed 1-step return if : } \lambda = 0 \text{Monte Carlo return if: } \lambda = 1$$
+The actor loss is the loss from the actor network, which is described in the following, using the $$\lambda-return$$ which is such that: $$\text{fixed 1-step return if : } \lambda = 0 \text{, Monte Carlo return if: } \lambda = 1$$ 
 
 Such that our reward model gives us:
 
@@ -303,12 +303,12 @@ We run a test period of 3 episodes in most cases, sampling actions from the acti
     to learning graphs.
 
 
-Dreamer Observation Loss 
+Experiment Results:
 
 
 
 
-<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:1500px;width:100%"> </iframe>
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:20000px;width:100%"> </iframe>
 
 <!-- View only:
 
@@ -398,11 +398,11 @@ Trying to fit in real robot experiments was definitely too much as both Gym-Duck
     Provide a description on what each group member is working on as part of the project. 
     I recommend each student work on most of the parts of the project so everyone learns about the content.
     
-    Both members worked on everything.
-    
-    Student Name: Ali focused more on infrastructure code for Gym-Duckietown and logging.
-    
-    Student Name: Paul focused more on the Dreamer implementation.
+Both members worked on all the parts.
+
+Student Name: Ali focused more on infrastructure code for Gym-Duckietown and logging.
+
+Student Name: Paul focused more on the Dreamer implementation.
 
 
 ## Acknowledgments
