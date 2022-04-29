@@ -1,0 +1,3321 @@
+Please see the file "diff.pdf" for a much nicer diff view
+
+First diff (lines 5 - 2845 ) is MBRL-Lib.
+Second diff (lines 2094 - 3321 ) is Gym Duckietown.
+
+diff --git a/.gitignore b/.gitignore
+index afedbec..33dee2c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -28,3 +28,4 @@ wheels/
+ MANIFEST
+ wandb/
+ scratch.py
++scratch.txt
+diff --git a/README.md b/README.md
+index 69f9572..a93b2ab 100644
+--- a/README.md
++++ b/README.md
+@@ -28,10 +28,23 @@ We recommend making a python [virtual environment](https://realpython.com/python
+  Then to activate it use:
+  
+     conda activate RLDucky
++
++You will use this python virtual environment whenever you are running code from this repo. You should use a seperate virtual environment when running code from the duckietown repo, such as in the commands below.
+ ### Gym-Duckietown
+ <!-- You will need to do the [duckietown laptop](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html) setup to use the gym-duckietown -->
++
++Make a new virtual environment for the Gym-Duckietown repo:
++
++    conda create --name GymDucky python=3.8
++
++ Then to activate it use:
++ 
++    conda activate GymDucky
++
++
+ The first repo to clone is [Gym-Duckietown](https://github.com/duckietown/gym-duckietown.git), and make sure you checkout and use the master branch. Additionally you can install the required python packages for that repo via the command `pip install -e .` where `.` specifies the current directory.
+ 
++    conda activate GymDucky
+     git clone https://github.com/duckietown/gym-duckietown.git
+     cd gym-duckietown 
+     git checkout master
+@@ -42,8 +55,11 @@ The first repo to clone is [Gym-Duckietown](https://github.com/duckietown/gym-du
+ While trying to use Gym-Duckietown we ran into an issue involving a malfunctioning / deprecated `geometry` module. If you run into the same problem, you can just comment out that import. So just navigate to the `gym-duckietown/gym_duckietown/simulator.py` file and comment out the `import geometry` line.
+ 
+ ### Importing Gym-Duckietown into MBRL-Lib
+-       
+ 
++For the following commands, switch back to your RLDucky environment:
++
++    conda activate RLDucky
++       
+ To use the Duckietown environment seamlessly with MBRL-Lib, we will have to add the `gym-duckietown` repo as a python module to our python installation. There are two ways of doing this.
+ 
+ #### Option 1: Using Path (.pth) Files 
+@@ -100,7 +116,7 @@ You will have to do this every time you restart your terminal. If you want to do
+ Clone this repository and install the required python packages:
+ 
+     git clone https://github.com/alik-git/duckietown-mbrl-lib
+-    cd mbrl-lib
++    cd duckietown-mbrl-lib
+     conda activate RLDucky
+     pip install -e ".[ducky]"
+ 
+@@ -141,13 +157,27 @@ To confirm that MuJoCo is installed and working correctly, run the following com
+     cd /your/path/to/mbrl-lib
+     python -m pytest tests/mujoco
+ 
+-#### Side Note:
+-While trying to run MuJoCo we twice ran into an error relating to something involving `undefined symbol: __glewBindBuffer`, and the only fix we found (from a Reddit [thread](https://www.reddit.com/r/reinforcementlearning/comments/qay11a/how_to_use_mujoco_from_python3/)) was to install the following packages:
++#### Mujoco Issues:
++
++A few issues with mujoco - and I've encountered this during other projects as well - are about mujoco not neatly attaching to a rendering engine in your software environment. On Ubuntu it seems to try and use the [OpenGL](https://en.wikipedia.org/wiki/OpenGL) rendering engine, and to find it is uses [GLEW](https://github.com/nigels-com/glew). But this process doesn't always end up being seamless. Below are a few issues that we ran into:
++#### Rendering Issue 1:
++
++While trying to run MuJoCo we ran into an error twice relating to something involving `undefined symbol: __glewBindBuffer`, and the only fix we found (from a Reddit [thread](https://www.reddit.com/r/reinforcementlearning/comments/qay11a/how_to_use_mujoco_from_python3/)) was to install the following packages:
+    
+     sudo apt install curl git libgl1-mesa-dev libgl1-mesa-glx libglew-dev \
+     libosmesa6-dev software-properties-common net-tools unzip vim \
+     virtualenv wget xpra xserver-xorg-dev libglfw3-dev patchelf
+        
++#### Rendering Issue 2:
++
++This issue is again about the [dm_control](https://github.com/deepmind/dm_control) installation of mujoco, you basically get an [error](https://github.com/deepmind/dm_control/issues/283) saying `mujoco.FatalError: gladLoadGL error`, and as described in the [aformentioned link](https://github.com/deepmind/dm_control/issues/283#issuecomment-1095490151), the solution is to find your dm_control package in your python installation, something like:
++
++```
++/home/username/anaconda3/envs/RLDucky/lib/python3.8/site-packages/dm_control/_render/glfw_renderer.py
++```
++
++and modify it to add some extra lines as described [here](https://github.com/deepmind/dm_control/issues/283#issuecomment-1095490151).
++
+ ### Logging and Visualization (W&B)
+ We use [Weights & Biases](https://wandb.ai/site) for logging and visualizing our run metrics. If you're unfamiliar with Weights & Biases, it is a powerful and convenient library to organize and track ML experiments. You can take look at their [quick-start guide](https://docs.wandb.ai/quickstart) and [documentation](https://docs.wandb.ai/), and you'll have to create an account to be able to view and use the dashboard, you can do so [here](https://wandb.ai/site). 
+ 
+@@ -167,6 +197,10 @@ For this project, just specify your `wandb` username and project name in the [ma
+ To run an experiment you can use commands in the following format:
+ 
+     python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_duckietown     
++
++Here is another example of a command with shorter episodes:
++
++    python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_cheetah_run algorithm.test_frequency=2 overrides.sequence_length=10 overrides.batch_size=10
+     
+ You will see the output of your run in the terminal as well as in a results file created by Hydra located by default at `.exp/planet/default/duckietown_gym_env/yyyy.mm.dd/hhmmss`; you can change the root directory (`./exp`) by passing 
+ `root_dir=path-to-your-dir`, and the experiment sub-folder (`default`) by
+diff --git a/base_sweep_config.yaml b/base_sweep_config.yaml
+new file mode 100644
+index 0000000..1874107
+--- /dev/null
++++ b/base_sweep_config.yaml
+@@ -0,0 +1,451 @@
++###################
++##### FOR GLEN ####
++###################
++# This is just a file to help set up hyperparameter sweeps using weights and
++# biases. You can pick and choose parameters and specify distributions to sample
++# from for a search.
++###################
++
++command:
++- python
++- ${program}
++- ${args}
++method: bayes
++metric:
++  goal: maximize
++  name: average_episode_reward
++program: sweep.py
++parameters:
++  overrides.model_learning_rate:
++    max: 0.15
++    min: 1e-07
++    distribution: uniform
++  overrides.planning_horizon:
++    max: 500
++    min: 12
++    distribution: int_uniform
++  overrides.cem_num_iters:
++    max: 20
++    min: 5
++    distribution: int_uniform
++  overrides.action_noise_std:
++    max: 1.5
++    min: 0.15
++    distribution: uniform
++  overrides.cem_elite_ratio:
++    max: 0.3
++    min: 0.05
++    distribution: uniform
++  overrides.num_grad_updates:
++    max: 200
++    min: 50
++    distribution: int_uniform
++
++
++
++
++
++
++
++  overrides.action_noise_std:
++    max: 0.6
++    min: 0.15
++    distribution: uniform
++    
++
++
++  overrides.sequence_length:
++    max: 80
++    min: 50
++    distribution: int_uniform 
++    
++  _algorithm_agent_optimizer_cfg_return_mean_elites:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  _algorithm_agent_optimizer_cfg_population_size:
++    max: 2000
++    min: 500
++    distribution: int_uniform
++  _algorithm_agent_optimizer_cfg_num_iterations:
++    max: 20
++    min: 5
++    distribution: int_uniform
++  _algorithm_agent_optimizer_cfg_clipped_normal:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  _algorithm_agent_optimizer_cfg_upper_bound:
++    values:
++      - NA
++    distribution: categorical
++  _algorithm_agent_optimizer_cfg_lower_bound:
++    values:
++      - NA
++    distribution: categorical
++  _algorithm_agent_optimizer_cfg_elite_ratio:
++    max: 0.2
++    min: 0.05
++    distribution: uniform
++  _algorithm_agent_optimizer_cfg__target_:
++    values:
++      - mbrl.planning.CEMOptimizer
++    distribution: categorical
++  _algorithm_agent_optimizer_cfg_device:
++    values:
++      - cuda:0
++    distribution: categorical
++  _action_optimizer_return_mean_elites:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  _algorithm_num_initial_trajectories:
++    max: 10
++    min: 3
++    distribution: int_uniform
++  _algorithm_agent_keep_last_solution:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  _dynamics_model_obs_encoding_size:
++    max: 2048
++    min: 512
++    distribution: int_uniform
++  _dynamics_model_latent_state_size:
++    max: 60
++    min: 15
++    distribution: int_uniform
++  _algorithm_agent_planning_horizon:
++    max: 24
++    min: 6
++    distribution: int_uniform
++  _action_optimizer_population_size:
++    max: 2000
++    min: 500
++    distribution: int_uniform
++  _action_optimizer_num_iterations:
++    max: 20
++    min: 5
++    distribution: int_uniform
++  _action_optimizer_clipped_normal:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  _dynamics_model_hidden_size_fcs:
++    max: 400
++    min: 100
++    distribution: int_uniform
++  _overrides_cem_population_size:
++    max: 2000
++    min: 500
++    distribution: int_uniform
++  _dynamics_model_grad_clip_norm:
++    max: 20
++    min: 5
++    distribution: int_uniform
++  _overrides_cem_clipped_normal:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  _action_optimizer_upper_bound:
++    values:
++      - NA
++    distribution: categorical
++  _action_optimizer_lower_bound:
++    values:
++      - NA
++    distribution: categorical
++  _action_optimizer_elite_ratio:
++    max: 0.2
++    min: 0.05
++    distribution: uniform
++  _algorithm_agent_replan_freq:
++    max: 2
++    min: 1
++    distribution: int_uniform
++  _overrides_planning_horizon:
++    max: 24
++    min: 6
++    distribution: int_uniform
++  _overrides_num_grad_updates:
++    max: 200
++    min: 50
++    distribution: int_uniform
++  _overrides_action_noise_std:
++    max: 0.6
++    min: 0.15
++    distribution: uniform
++  _dynamics_model_obs_shape_2:
++    max: 128
++    min: 32
++    distribution: int_uniform
++  _dynamics_model_obs_shape_1:
++    max: 128
++    min: 32
++    distribution: int_uniform
++  _dynamics_model_obs_shape_0:
++    max: 6
++    min: 2
++    distribution: int_uniform
++  _dynamics_model_belief_size:
++    max: 400
++    min: 100
++    distribution: int_uniform
++  _dynamics_model_action_size:
++    values:
++      - NA
++    distribution: categorical
++  _algorithm_action_noise_std:
++    max: 0.6
++    min: 0.15
++    distribution: uniform
++  _overrides_sequence_length:
++    max: 100
++    min: 25
++    distribution: int_uniform
++  _overrides_cem_elite_ratio:
++    max: 0.2
++    min: 0.05
++    distribution: uniform
++  _algorithm_agent_action_ub:
++    values:
++      - NA
++    distribution: categorical
++  _algorithm_agent_action_lb:
++    values:
++      - NA
++    distribution: categorical
++  _action_optimizer__target_:
++    values:
++      - mbrl.planning.CEMOptimizer
++    distribution: categorical
++  _dynamics_model_free_nats:
++    max: 6
++    min: 2
++    distribution: int_uniform
++  _algorithm_test_frequency:
++    max: 50
++    min: 13
++    distribution: int_uniform
++  _algorithm_agent__target_:
++    values:
++      - mbrl.planning.TrajectoryOptimizerAgent
++    distribution: categorical
++  _overrides_cem_num_iters:
++    max: 20
++    min: 5
++    distribution: int_uniform
++  _dynamics_model_kl_scale:
++    max: 2
++    min: 1
++    distribution: int_uniform
++  _dynamics_model__target_:
++    values:
++      - mbrl.models.PlaNetModel
++    distribution: categorical
++  _algorithm_agent_verbose:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  _action_optimizer_device:
++    values:
++      - cuda:0
++    distribution: categorical
++  _overrides_trial_length:
++    max: 500
++    min: 125
++    distribution: int_uniform
++  _dynamics_model_min_std:
++    max: 0.2
++    min: 0.05
++    distribution: uniform
++  _algorithm_num_episodes:
++    max: 2000
++    min: 500
++    distribution: int_uniform
++  _algorithm_dataset_size:
++    max: 2000000
++    min: 500000
++    distribution: int_uniform
++  _dynamics_model_device:
++    values:
++      - cuda:0
++    distribution: categorical
++  _overrides_batch_size:
++    max: 100
++    min: 25
++    distribution: int_uniform
++  _overrides_free_nats:
++    max: 6
++    min: 2
++    distribution: int_uniform
++  _log_frequency_agent:
++    max: 2000
++    min: 500
++    distribution: int_uniform
++  log_frequency_agent:
++    max: 2000
++    min: 500
++    distribution: int_uniform
++  _overrides_kl_scale:
++    max: 2
++    min: 1
++    distribution: int_uniform
++  action_optimizer:
++    values:
++      - "{'_target_': 'mbrl.planning.CEMOptimizer'"
++      - "'num_iterations': '${overrides.cem_num_iters}'"
++      - "'elite_ratio': '${overrides.cem_elite_ratio}'"
++      - "'population_size': '${overrides.cem_population_size}'"
++      - "'alpha': '${overrides.cem_alpha}'"
++      - "'lower_bound': '???'"
++      - "'upper_bound': '???'"
++      - "'return_mean_elites': True"
++      - "'device': '${device}'"
++      - "'clipped_normal': '${overrides.cem_clipped_normal}'}"
++    distribution: categorical
++  _algorithm_name:
++    values:
++      - planet
++    distribution: categorical
++  dynamics_model:
++    values:
++      - "{'_target_': 'mbrl.models.PlaNetModel'"
++      - "'obs_shape': [3"
++      - 64
++      - 64]
++      - "'obs_encoding_size': 1024"
++      - "'encoder_config': [[3"
++      - 32
++      - 4
++      - 2]
++      - "[32"
++      - 64
++      - 4
++      - 2]
++      - "[64"
++      - 128
++      - 4
++      - 2]
++      - "[128"
++      - 256
++      - 4
++      - 2]]
++      - "'decoder_config': [[1024"
++      - 1
++      - 1]
++      - "[[1024"
++      - 128
++      - 5
++      - 2]
++      - "[128"
++      - 64
++      - 5
++      - 2]
++      - "[64"
++      - 32
++      - 6
++      - 2]
++      - "[32"
++      - 3
++      - 6
++      - 2]]]
++      - "'action_size': '???'"
++      - "'hidden_size_fcs': 200"
++      - "'belief_size': 200"
++      - "'latent_state_size': 30"
++      - "'device': '${device}'"
++      - "'min_std': 0.1"
++      - "'free_nats': 3.0"
++      - "'kl_scale': 1.0"
++      - "'grad_clip_norm': 10.0}"
++    distribution: categorical
++  _overrides_env:
++    values:
++      - duckietown_gym_env
++    distribution: categorical
++  _save_video:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  _experiment:
++    values:
++      - default
++    distribution: categorical
++  _debug_mode:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  save_video:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  experiment:
++    values:
++      - default
++    distribution: categorical
++  debug_mode:
++    values:
++      - "true"
++      - "false"
++    distribution: categorical
++  overrides:
++    values:
++      - "{'env': 'duckietown_gym_env'"
++      - "'trial_length': 250"
++      - "'action_noise_std': 0.3"
++      - "'num_grad_updates': 100"
++      - "'sequence_length': 50"
++      - "'batch_size': 50"
++      - "'free_nats': 3"
++      - "'kl_scale': 1.0"
++      - "'planning_horizon': 12"
++      - "'cem_num_iters': 10"
++      - "'cem_elite_ratio': 0.1"
++      - "'cem_population_size': 1000"
++      - "'cem_alpha': 0.0"
++      - "'cem_clipped_normal': True}"
++    distribution: categorical
++  algorithm:
++    values:
++      - "{'name': 'planet'"
++      - "'agent': {'_target_': 'mbrl.planning.TrajectoryOptimizerAgent'"
++      - "'action_lb': '???'"
++      - "'action_ub': '???'"
++      - "'planning_horizon': '${overrides.planning_horizon}'"
++      - "'optimizer_cfg': '${action_optimizer}'"
++      - "'replan_freq': 1"
++      - "'keep_last_solution': False"
++      - "'verbose': '${debug_mode}'}"
++      - "'num_initial_trajectories': 5"
++      - "'action_noise_std': 0.3"
++      - "'test_frequency': 25"
++      - "'num_episodes': 1000"
++      - "'dataset_size': 1000000}"
++    distribution: categorical
++  _root_dir:
++    values:
++      - ./exp
++    distribution: categorical
++  root_dir:
++    values:
++      - ./exp
++    distribution: categorical
++  _device:
++    values:
++      - cuda:0
++    distribution: categorical
++  device:
++    values:
++      - cuda:0
++    distribution: categorical
+\ No newline at end of file
+diff --git a/mbrl/algorithms/dreamer.py b/mbrl/algorithms/dreamer.py
+new file mode 100644
+index 0000000..7d1ba17
+--- /dev/null
++++ b/mbrl/algorithms/dreamer.py
+@@ -0,0 +1,300 @@
++###################
++##### FOR GLEN ####
++###################
++# This file is basically a copy of MBRL-Lib's PlaNet, modified to accommodate
++# the dreamer method.
++###################
++
++# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
++#
++# This source code is licensed under the MIT license found in the
++# LICENSE file in the root directory of this source tree.
++import os
++import pathlib
++from typing import List, Optional, Union, cast
++
++import gym
++import hydra
++import numpy as np
++import omegaconf
++import torch
++
++import mbrl.constants
++#import mbrl.third_party.pytorch_sac as pytorch_sac
++
++from mbrl.env.termination_fns import no_termination
++from mbrl.models import ModelEnv, ModelTrainer
++from mbrl.planning import RandomAgent, create_trajectory_optim_agent_for_model
++from mbrl.util import Logger
++from mbrl.util.common import (
++    create_replay_buffer,
++    get_sequence_buffer_iterator,
++    rollout_agent_trajectories,
++)
++#from mbrl.planning.sac_wrapper import SACAgent
++from mbrl.planning.dreamer_wrapper import DreamerAgent
++
++import wandb
++from gym.wrappers import Monitor
++
++
++# Original modified from PlaNet
++
++METRICS_LOG_FORMAT = [
++    ("observations_loss", "OL", "float"),
++    ("reward_loss", "RL", "float"),
++    ("gradient_norm", "GN", "float"),
++    ("kl_loss", "KL", "float"),
++]
++
++
++def train(
++        env: gym.Env,
++        cfg: omegaconf.DictConfig,
++        silent: bool = False,
++        work_dir: Union[Optional[str], pathlib.Path] = None,
++) -> np.float32:
++    # Experiment initialization
++    debug_mode = cfg.get("debug_mode", False)
++
++    if work_dir is None:
++        work_dir = os.getcwd()
++    work_dir = pathlib.Path(work_dir)
++    print(f"Results will be saved at {work_dir}.")
++    wandb.config.update({"work_dir": str(work_dir)})
++
++    if silent:
++        logger = None
++    else:
++        logger = Logger(work_dir)
++        logger.register_group("metrics", METRICS_LOG_FORMAT, color="yellow")
++        logger.register_group(
++            mbrl.constants.RESULTS_LOG_NAME,
++            [
++                ("env_step", "S", "int"),
++                ("train_episode_reward", "RT", "float"),
++                ("episode_reward", "ET", "float"),
++            ],
++            color="green",
++        )
++
++    rng = torch.Generator(device=cfg.device)
++    rng.manual_seed(cfg.seed)
++    np_rng = np.random.default_rng(seed=cfg.seed)
++
++    # Create replay buffer and collect initial data
++    replay_buffer = create_replay_buffer(
++        cfg,
++        env.observation_space.shape,
++        env.action_space.shape,
++        collect_trajectories=True,
++        rng=np_rng,
++    )
++    rollout_agent_trajectories(
++        env,
++        cfg.algorithm.num_initial_trajectories,
++        RandomAgent(env),
++        agent_kwargs={},
++        replay_buffer=replay_buffer,
++        collect_full_trajectories=True,
++        trial_length=cfg.overrides.trial_length,
++        agent_uses_low_dim_obs=False,
++    )
++
++    # Create PlaNet model
++    cfg.dynamics_model.action_size = env.action_space.shape[0]
++
++    # Use hydra to create a dreamer model (really uses PlaNet model)
++    dreamer = hydra.utils.instantiate(cfg.dynamics_model)
++    # Give it the real gym env to model
++    dreamer.setGymEnv(env, work_dir)
++
++    # adam optim that takes into account all 3 network losses
++    # actor, critic, model
++    dreamer_optim = dreamer.configure_optimizers()
++    assert isinstance(dreamer, mbrl.models.DreamerModel)
++    model_env = ModelEnv(env, dreamer, no_termination, generator=rng)
++    trainer = ModelTrainer(dreamer, logger=logger, optim_lr=1e-3, optim_eps=1e-4)
++
++    ###################
++    ##### FOR GLEN ####
++    ################### 
++    # 
++    # Some thoughts on how we were approaching this problem
++
++    # This library has a function called
++    # create_trajectory_optim_agent_for_model() that is used to create an agent
++    # (an agent that essentially uses CEM planning) given a world model.
++    # 
++    # Example: agent =
++    # create_trajectory_optim_agent_for_model(model_env,cfg.algorithm.agent) 
++    # 
++    # But in our case, dreamer is the world model i.e. model_env, but Dreamer
++    # also includes an "agent" in the form of an actor and critic network, and
++    # Dreamer therefore doesn't need CEM planning.
++    #
++    # So instead of doing it the "MBRL-Lib" way and creating an agent, we just
++    # use the world model i.e. Dreamer to sample actions from. This doesn't sit
++    # well with the structure of this library so in future work we wil try to
++    # separate the model part of Dreamer (which is just PlaNet) and the
++    # agent/planning part of Dreamer, so that it fits better with this library.
++    
++
++    # Create Dreamer Agent (Action and Value model), are these needed for this to operate properly?
++    # This agent rolls outs trajectories using ModelEnv, which uses planet.sample()
++    # to simulate the trajectories from the prior transition model
++    # The starting point for trajectories is conditioned on the latest observation,
++    # for which we use planet.update_posterior() after each environment step
++    #the CEM way
++    # agent = create_trajectory_optim_agent_for_model(model_env, cfg.algorithm.agent)
++    #the SAC/Dreamer way
++    # agent = different_or_same_function(model_env, cfg.algorithm.agent)
++    
++
++    # Callback and containers to accumulate training statistics and average over batch
++    rec_losses: List[float] = []
++    reward_losses: List[float] = []
++    kl_losses: List[float] = []
++    grad_norms: List[float] = []
++
++    def get_metrics_and_clear_metric_containers():
++        metrics_ = {
++            "observations_loss": np.mean(rec_losses).item(),
++            "reward_loss": np.mean(reward_losses).item(),
++            "gradient_norm": np.mean(grad_norms).item(),
++            "kl_loss": np.mean(kl_losses).item(),
++        }
++
++        for c in [rec_losses, reward_losses, kl_losses, grad_norms]:
++            c.clear()
++
++        return metrics_
++
++    def batch_callback(_epoch, _loss, meta, _mode):
++        if meta:
++            rec_losses.append(meta["observations_loss"])
++            reward_losses.append(meta["reward_loss"])
++            kl_losses.append(meta["kl_loss"])
++            if "grad_norm" in meta:
++                grad_norms.append(meta["grad_norm"])
++
++    def is_test_episode(episode_):
++        return episode_ % cfg.algorithm.test_frequency == 0
++
++    # PlaNet loop
++    step = replay_buffer.num_stored
++    total_rewards = 0.0
++    for episode in range(cfg.algorithm.num_episodes):
++        dreamer.set_curr_episode(episode)
++        
++        # Train the model for one epoch of `num_grad_updates`
++        dataset, _ = get_sequence_buffer_iterator(
++            replay_buffer,
++            cfg.overrides.batch_size,
++            0,  # no validation data
++            cfg.overrides.sequence_length,
++            max_batches_per_loop_train=cfg.overrides.num_grad_updates,
++            use_simple_sampler=True,
++        )
++        trainer.train(
++            dataset, num_epochs=1, batch_callback=batch_callback, evaluate=False
++        )
++        dreamer.save(work_dir / "dreamer.pth")
++        replay_buffer.save(work_dir)
++        metrics = get_metrics_and_clear_metric_containers()
++        logger.log_data("metrics", metrics)
++        wandb_metrics = metrics
++        wandb_metrics["global_episode"] = episode
++        wandb.log(wandb_metrics)
++
++        if is_test_episode(episode):
++            print("AHH ITS A TEST EPISODE!!!")
++            curr_env = Monitor(env, work_dir, force=True)
++            dreamer.set_currently_testing(True)
++        else:
++            curr_env = env
++            dreamer.set_currently_testing(False)
++
++        # Collect one episode of data
++        episode_reward = 0.0
++        obs = curr_env.reset()
++        # want to do 
++        #agent.reset()
++        dreamer.reset_world_model(device=cfg.device)
++        state = None
++        action = None
++        done = False
++        while not done:
++            
++            # hacky check to see if we are using the duckietown environment
++            # I just see if the obs shape ends in 3, for the other envs it does not 
++            if obs.shape[-1] == 3:
++                dreamer.in_duckietown = True
++            
++            if dreamer.in_duckietown:
++                obs = np.transpose(obs, (2,0,1))
++                pass
++            
++            # want to do 
++            # func dreamer.update(...)
++            #   planet.update(..)
++            #   actor_net.update(..)
++            #   value_net.updare(..)
++            # dreamer.update_alg(obs, action=action, rng=rng)
++            '''
++            Don't need yet, noise in implementation
++            action_noise = (
++                0
++                if is_test_episode(episode)
++                else cfg.overrides.action_noise_std
++                     * np_rng.standard_normal(curr_env.action_space.shape[0])
++            )
++            '''
++            # want to do (kinda)
++            # action, _ = dreamer.policy(obs)
++            #action sampler for Dreamer wants tensors with a batch dimension
++            action, _, state, = dreamer.action_sampler_fn(torch.FloatTensor(obs).unsqueeze(0), state, dreamer.explore)
++            #action = action.squeeze(0).numpy()
++            '''
++            Already have noise in the implementation
++            action = action + action_noise
++            # action = agent.act(obs) + action_noise
++            action = np.clip(action, -1.0, 1.0)  # to account for the noise
++            '''
++            
++            if dreamer.in_duckietown:
++                obs = np.transpose(obs, (1,2,0))
++            action = action.squeeze(0).cpu().numpy() #env likes numpy arrays for actions unbatched
++            next_obs, reward, done, info = curr_env.step(action)
++            replay_buffer.add(obs, action, next_obs, reward, done)
++            episode_reward += reward
++            obs = next_obs
++            if debug_mode:
++                print(f"step: {step}, reward: {reward}.")
++            step += 1
++        total_rewards += episode_reward
++        logger.log_data(
++            mbrl.constants.RESULTS_LOG_NAME,
++            {
++                "episode_reward": episode_reward * is_test_episode(episode),
++                "train_episode_reward": episode_reward * (1 - is_test_episode(episode)),
++                "env_step": step,
++            },
++        )
++        wandb.log(
++            {
++                "episode_reward": episode_reward * is_test_episode(episode),
++                "train_episode_reward": episode_reward * (1 - is_test_episode(episode)),
++                "env_step": step,
++                "global_episode": episode
++            }
++        )
++        avg_ep_reward = total_rewards / (episode+1)
++        wandb.log({'average_episode_reward': avg_ep_reward, "global_episode": episode})
++
++    # returns average episode reward (e.g., to use for tuning learning curves)
++    avg_ep_reward = total_rewards / cfg.algorithm.num_episodes
++    wandb.log({'average_episode_reward': avg_ep_reward, "global_episode": episode})
++    return avg_ep_reward
++
++
+diff --git a/mbrl/algorithms/planet.py b/mbrl/algorithms/planet.py
+index 61c6586..364f437 100644
+--- a/mbrl/algorithms/planet.py
++++ b/mbrl/algorithms/planet.py
+@@ -1,3 +1,8 @@
++###################
++##### FOR GLEN ####
++###################
++# We added video recording for the Duckietown environments and better logging.
++###################
+ # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+ #
+ # This source code is licensed under the MIT license found in the
+@@ -24,6 +29,10 @@ from mbrl.util.common import (
+ )
+ 
+ import wandb
++from gym.wrappers import Monitor
++from gym.wrappers.monitoring.video_recorder import VideoRecorder
++from PIL import Image
++import cv2
+ 
+ METRICS_LOG_FORMAT = [
+     ("observations_loss", "OL", "float"),
+@@ -46,6 +55,7 @@ def train(
+         work_dir = os.getcwd()
+     work_dir = pathlib.Path(work_dir)
+     print(f"Results will be saved at {work_dir}.")
++    wandb.config.update({"work_dir": str(work_dir)})
+ 
+     if silent:
+         logger = None
+@@ -90,7 +100,9 @@ def train(
+     planet = hydra.utils.instantiate(cfg.dynamics_model)
+     assert isinstance(planet, mbrl.models.PlaNetModel)
+     model_env = ModelEnv(env, planet, no_termination, generator=rng)
+-    trainer = ModelTrainer(planet, logger=logger, optim_lr=1e-3, optim_eps=1e-4)
++    print(f"\n###\nUsing learning rate: {cfg.overrides.model_learning_rate}\n###")
++    
++    trainer = ModelTrainer(planet, logger=logger, optim_lr=cfg.overrides.model_learning_rate, optim_eps=1e-4)
+ 
+     # Create CEM agent
+     # This agent rolls outs trajectories using ModelEnv, which uses planet.sample()
+@@ -133,6 +145,7 @@ def train(
+     step = replay_buffer.num_stored
+     total_rewards = 0.0
+     for episode in range(cfg.algorithm.num_episodes):
++        print(f"###\nNow on episode {episode} of {cfg.algorithm.num_episodes - 1}")
+         # Train the model for one epoch of `num_grad_updates`
+         dataset, _ = get_sequence_buffer_iterator(
+             replay_buffer,
+@@ -148,12 +161,22 @@ def train(
+         planet.save(work_dir / "planet.pth")
+         replay_buffer.save(work_dir)
+         metrics = get_metrics_and_clear_metric_containers()
++        wandb_metrics = metrics
++        wandb_metrics['global_episode'] = episode
+         logger.log_data("metrics", metrics)
+-        wandb.log(metrics)
++        
++        wandb.log(wandb_metrics)
++        
++        if is_test_episode(episode):
++            print(f"Reached Test Episode! Episode: {episode}")
++            curr_env = Monitor(env, work_dir / "videos" / f"{episode:05d}", force=True)
++            planet.save(work_dir / "models" / f"{episode:05d}" / "planet.pth")
++        else:
++            curr_env = env
+ 
+         # Collect one episode of data
+         episode_reward = 0.0
+-        obs = env.reset()
++        obs = curr_env.reset()
+         agent.reset()
+         planet.reset_posterior()
+         action = None
+@@ -164,11 +187,11 @@ def train(
+                 0
+                 if is_test_episode(episode)
+                 else cfg.overrides.action_noise_std
+-                * np_rng.standard_normal(env.action_space.shape[0])
++                * np_rng.standard_normal(curr_env.action_space.shape[0])
+             )
+             action = agent.act(obs) + action_noise
+             action = np.clip(action, -1.0, 1.0)  # to account for the noise
+-            next_obs, reward, done, info = env.step(action)
++            next_obs, reward, done, info = curr_env.step(action)
+             replay_buffer.add(obs, action, next_obs, reward, done)
+             episode_reward += reward
+             obs = next_obs
+@@ -189,8 +212,13 @@ def train(
+                 "episode_reward": episode_reward * is_test_episode(episode),
+                 "train_episode_reward": episode_reward * (1 - is_test_episode(episode)),
+                 "env_step": step,
++                "global_episode": episode
+             }
+         )
++        avg_ep_reward = total_rewards / (episode+1)
++        wandb.log({'average_episode_reward': avg_ep_reward, "global_episode": episode})
+ 
+     # returns average episode reward (e.g., to use for tuning learning curves)
+-    return total_rewards / cfg.algorithm.num_episodes
++    avg_ep_reward = total_rewards / cfg.algorithm.num_episodes
++    wandb.log({'average_episode_reward': avg_ep_reward, "global_episode": episode})
++    return avg_ep_reward
+diff --git a/mbrl/examples/conf/algorithm/dreamer.yaml b/mbrl/examples/conf/algorithm/dreamer.yaml
+new file mode 100644
+index 0000000..7c69b3f
+--- /dev/null
++++ b/mbrl/examples/conf/algorithm/dreamer.yaml
+@@ -0,0 +1,59 @@
++# @package _group_
++
++###################
++##### FOR GLEN ####
++###################
++# This is the config file for the "planning parts" of Dreamer 
++###################
++
++name: "dreamer"
++
++agent:
++  # this calls a Dreamer agent that we made
++  _target_: mbrl.planning.dreamer_wrapper.DreamerAgent #mbrl.third_party.pytorch_sac.agent.sac.SACAgent
++  env: ${overrides.environment}
++
++num_initial_trajectories: 5
++action_noise_std: 0.3
++test_frequency: 25
++num_episodes: 1000
++dataset_size: 1000000
++
++  # these are from an SAC implmentation that we may use 
++  # from mbrl.planning.sac_wrapper import SACAgent
++  # obs_dim: ??? # to be specified later
++  # action_dim: ??? # to be specified later
++  # action_range: ??? # to be specified later
++  # device: ${device}
++
++#   critic_cfg: ${algorithm.double_q_critic}
++#   actor_cfg: ${algorithm.diag_gaussian_actor}
++#   discount: 0.99
++#   init_temperature: 0.1
++#   alpha_lr: ${overrides.sac_alpha_lr}
++#   alpha_betas: [0.9, 0.999]
++#   actor_lr: ${overrides.sac_actor_lr}
++#   actor_betas: [0.9, 0.999]
++#   actor_update_frequency: ${overrides.sac_actor_update_frequency}
++#   critic_lr: ${overrides.sac_critic_lr}
++#   critic_betas: [0.9, 0.999]
++#   critic_tau: 0.005
++#   critic_target_update_frequency: ${overrides.sac_critic_target_update_frequency}
++#   batch_size: 256
++#   learnable_temperature: true
++#   target_entropy: ${overrides.sac_target_entropy}
++
++# double_q_critic:
++#   _target_: mbrl.third_party.pytorch_sac.agent.critic.DoubleQCritic
++#   obs_dim: ${algorithm.agent.obs_dim}
++#   action_dim: ${algorithm.agent.action_dim}
++#   hidden_dim: 1024
++#   hidden_depth: ${overrides.sac_hidden_depth}
++
++# diag_gaussian_actor:
++#   _target_: mbrl.third_party.pytorch_sac.agent.actor.DiagGaussianActor
++#   obs_dim: ${algorithm.agent.obs_dim}
++#   action_dim: ${algorithm.agent.action_dim}
++#   hidden_depth: ${overrides.sac_hidden_depth}
++#   hidden_dim: 1024
++#   log_std_bounds: [-5, 2]
+\ No newline at end of file
+diff --git a/mbrl/examples/conf/dynamics_model/dreamer.yaml b/mbrl/examples/conf/dynamics_model/dreamer.yaml
+new file mode 100644
+index 0000000..48cc673
+--- /dev/null
++++ b/mbrl/examples/conf/dynamics_model/dreamer.yaml
+@@ -0,0 +1,37 @@
++# @package _group_
++###################
++##### FOR GLEN ####
++###################
++# This is the config file for the "model parts" of Dreamer. Again this mostly
++# borrows settings from the MBRL-Lib PlaNet and the recommended config from
++# Chandramouli Rajagopalan’s pytorch implementation of Dreamer.
++###################
++_target_: mbrl.models.DreamerModel
++obs_shape: [3, 64, 64]
++# obs_encoding_size: 1024
++# encoder_config:
++#   - [3, 32, 4, 2]
++#   - [32, 64, 4, 2]
++#   - [64, 128, 4, 2]
++#   - [128, 256, 4, 2]
++# decoder_config:
++#   - [1024, 1, 1]
++#   - - [1024, 128, 5, 2]
++#     - [128, 64, 5, 2]
++#     - [64, 32, 6, 2]
++#     - [32, 3, 6, 2]
++action_size: ???
++hidden_size_fcs: 400
++depth_size: 32
++stoch_size: 30
++deter_size: 200
++# belief_size: 200
++# latent_state_size: 30
++device: ${device}
++min_std: 0.1
++# free_nats: 3.0
++# kl_scale: 1.0
++# # grad_clip_norm: 1000.0
++# # To use for duckietown_gym_env
++# grad_clip_norm: 10.0
++# env: ${overrides.env}
+diff --git a/mbrl/examples/conf/overrides/dreamer_cheetah_run.yaml b/mbrl/examples/conf/overrides/dreamer_cheetah_run.yaml
+new file mode 100644
+index 0000000..f9be52b
+--- /dev/null
++++ b/mbrl/examples/conf/overrides/dreamer_cheetah_run.yaml
+@@ -0,0 +1,42 @@
++# @package _group_
++###################
++##### FOR GLEN ####
++###################
++# This is the config file to run Dreamer on Cheetah Run. For now we mostly just
++# use the same values as PlaNet.
++###################
++env: "dmcontrol_cheetah_run"  # used to set the hydra dir, ignored otherwise
++
++env_cfg:
++  _target_: "mbrl.third_party.dmc2gym.wrappers.DMCWrapper"
++  domain_name: "cheetah"
++  task_name: "run"
++  task_kwargs:
++    random: ${seed}
++  visualize_reward: false
++  from_pixels: true
++  height: 64
++  width: 64
++  frame_skip: 4
++  bit_depth: 5
++
++term_fn: "no_termination"
++
++# General configuration overrides
++trial_length: 250
++action_noise_std: 0.3
++
++# Model overrides
++num_grad_updates: 100
++sequence_length: 50
++batch_size: 50
++free_nats: 3
++kl_scale: 1.0
++
++# Planner configuration overrides
++planning_horizon: 12
++cem_num_iters: 10
++cem_elite_ratio: 0.1
++cem_population_size: 1000
++cem_alpha: 0.0
++cem_clipped_normal: true
+diff --git a/mbrl/examples/conf/overrides/dreamer_duckietown.yaml b/mbrl/examples/conf/overrides/dreamer_duckietown.yaml
+new file mode 100644
+index 0000000..cd3775d
+--- /dev/null
++++ b/mbrl/examples/conf/overrides/dreamer_duckietown.yaml
+@@ -0,0 +1,32 @@
++# @package _group_
++###################
++##### FOR GLEN ####
++###################
++# This is the config file to run Dreamer on Duckietown. For now we mostly just
++# use the same values as PlaNet.
++###################
++env: "duckietown_gym_env"  # used to set the hydra dir, ignored otherwise
++
++# These settings are based on the cheetah run yaml file
++
++# General configuration overrides
++trial_length: 250
++action_noise_std: 0.3
++
++# Model overrides
++num_grad_updates: 100
++sequence_length: 50
++batch_size: 50
++free_nats: 3
++kl_scale: 1.0
++
++# Planner configuration overrides
++planning_horizon: 12
++cem_num_iters: 10
++cem_elite_ratio: 0.1
++cem_population_size: 1000
++cem_alpha: 0.0
++cem_clipped_normal: true
++
++#Ali's overrides
++model_learning_rate: 1e-4
+diff --git a/mbrl/examples/conf/overrides/planet_duckietown.yaml b/mbrl/examples/conf/overrides/planet_duckietown.yaml
+index f16f5b4..27cde36 100644
+--- a/mbrl/examples/conf/overrides/planet_duckietown.yaml
++++ b/mbrl/examples/conf/overrides/planet_duckietown.yaml
+@@ -21,3 +21,6 @@ cem_elite_ratio: 0.1
+ cem_population_size: 1000
+ cem_alpha: 0.0
+ cem_clipped_normal: true
++
++#Ali's overrides
++model_learning_rate: 1e-4
+diff --git a/mbrl/examples/main.py b/mbrl/examples/main.py
+index e3216e6..8cf4acf 100644
+--- a/mbrl/examples/main.py
++++ b/mbrl/examples/main.py
+@@ -11,6 +11,7 @@ import torch
+ import mbrl.algorithms.mbpo as mbpo
+ import mbrl.algorithms.pets as pets
+ import mbrl.algorithms.planet as planet
++import mbrl.algorithms.dreamer as dreamer #added April 2022 for project
+ import mbrl.util.env
+ 
+ import pandas as pd
+@@ -76,6 +77,8 @@ def run(cfg: omegaconf.DictConfig):
+         return mbpo.train(env, test_env, term_fn, cfg)
+     if cfg.algorithm.name == "planet":
+         return planet.train(env, cfg)
++    if cfg.algorithm.name == "dreamer": #added for project
++        return dreamer.train(env, cfg)
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/mbrl/models/__init__.py b/mbrl/models/__init__.py
+index e8e8d0d..29e6e1d 100644
+--- a/mbrl/models/__init__.py
++++ b/mbrl/models/__init__.py
+@@ -9,6 +9,7 @@ from .model_env import ModelEnv
+ from .model_trainer import ModelTrainer
+ from .one_dim_tr_model import OneDTransitionRewardModel
+ from .planet import PlaNetModel
++from .dreamer import DreamerModel
+ from .util import (
+     Conv2dDecoder,
+     Conv2dEncoder,
+diff --git a/mbrl/models/dreamer.py b/mbrl/models/dreamer.py
+new file mode 100644
+index 0000000..4573803
+--- /dev/null
++++ b/mbrl/models/dreamer.py
+@@ -0,0 +1,723 @@
++###################
++##### FOR GLEN ####
++###################
++# This file holds the bulk of the Dreamer implementation. Most of the code was
++# inspired from two public implementations. The original Dreamer author's tf
++# implementation here https://github.com/danijar/dreamer and Chandramouli
++# Rajagopalan’s pytorch implementation of Dreamer here
++# https://github.com/chamorajg/pl-dreamer.
++###################
++from dataclasses import dataclass
++from typing import Any, Dict, List, Optional, Tuple, Union
++
++import numpy as np
++import torch
++import torch.distributions
++import torch.nn as nn
++import torch.nn.functional as F
++
++from mbrl.types import TensorType, TransitionBatch
++
++from .model import Model
++from .util import Conv2dDecoder, Conv2dEncoder, to_tensor #From mbrl-lib.PlaNet
++
++from PIL import Image
++
++import wandb
++from collections import Iterable
++import omegaconf
++
++from pathlib import Path
++import cv2
++
++from mbrl.models.planet import PlaNetModel #will need ActionDecoder and DenseModel
++#from mbrl.models.action import ActionDecoder
++#from mbrl.models.dense import DenseModel
++#https://github.com/chamorajg/pl-dreamer/blob/main/dreamer.py
++#https://github.com/juliusfrost/dreamer-pytorch/blob/master/dreamer/models/dense.py
++
++#For Dreamer implementation, Dreamer trainer uses Pytorch Lightning
++from tqdm import tqdm
++from typing import Callable, Iterator, Tuple
++from torch.optim import Adam
++from torch.utils.data import DataLoader, IterableDataset
++from torch.distributions import Categorical, Normal
++from mbrl.models.planet_imp import PLANet, FreezeParameters
++from mbrl.models.planet_legacy import Episode, DMControlSuiteEnv
++
++def flatten_config(cfg, curr_nested_key):
++    """The nested config file provided by Hydra cannot be parsed by wandb. This recursive function flattens the config file, separating the nested keys and their parents via an underscore. Allows for easier configuration using wandb.
++
++    Args:
++        cfg (Hydra config): The nested config file used by Hydra.
++        curr_nested_key (str): The current parent key (used for recursive calls).
++
++    Returns:
++        (dict): A flatt configuration dictionary.
++    """    
++    
++    flat_cfg = {}
++
++    for curr_key in cfg.keys():
++
++        # deal with missing values
++        try:
++            curr_item = cfg[curr_key]
++        except Exception as e:
++            curr_item = 'NA'
++
++        # deal with lists
++        if type(curr_item) == list or type(curr_item) == omegaconf.listconfig.ListConfig:
++            for nested_idx, nested_item in enumerate(curr_item):
++                list_nested_key = f"{curr_nested_key}>{curr_key}>{nested_idx}"
++                flat_cfg[list_nested_key] = nested_item
++        
++        # check if item is also a config
++        # recurse
++        elif isinstance(curr_item, Iterable) and type(curr_item) != str:
++            flat_cfg.update(flatten_config(curr_item, f"{curr_nested_key}>{curr_key}"))
++
++        # otherwise just add to return dict
++        else:
++            flat_cfg[f"{curr_nested_key}>{curr_key}"] = curr_item
++
++    return flat_cfg
++
++class ExperienceSourceDataset(IterableDataset):
++    """
++    Implementation from PyTorch Lightning Bolts:
++    https://github.com/PyTorchLightning/pytorch-lightning-bolts/blob/master/pl_bolts/datamodules/experience_source.py
++    Basic experience source dataset. Takes a generate_batch function that returns an iterator.
++    The logic for the experience source and how the batch is generated is defined the Lightning model itself
++    """
++
++    def __init__(self, generate_batch: Callable):
++        self.generate_batch = generate_batch
++
++    def __iter__(self) -> Iterator:
++        iterator = self.generate_batch
++        return iterator
++
++# class DreamerModel(nn.Module):
++class DreamerModel(Model):
++    
++    def __init__(
++        self,
++        obs_shape,
++        action_size,
++        hidden_size_fcs,
++        depth_size,
++        stoch_size,
++        deter_size,
++        device: Union[str, torch.device],
++        min_std,
++    ):
++        # This config is needed for now as we figure out 
++        # what parameters we need to run dreamer
++        # we get values from it from time to time
++        
++        outside_config = {
++            'name': 'Dreamer',
++            'env': 'quadruped_run',
++            'seed': 42,
++            'ckpt_callback': {
++                'save_top_k': 2,
++                'mode': 'min',
++                'monitor': 'loss',
++                'save_on_train_epoch_end': True,
++                'save_last': True,
++                'trainer_params': None,
++                'default_root_dir': 'None',
++                'gpus': 1,
++                'gradient_clip_val': 100.0,
++                'val_check_interval': 5,
++                'max_epochs': 1000,
++                },
++            'dreamer': {
++                'td_model_lr': 0.0005,
++                'actor_lr': 8e-05,
++                'critic_lr': 8e-05,
++                'default_lr': 0.0005,
++                'weight_decay': 1e-06,
++                'batch_size': 50,
++                'batch_length': 50,
++                'length': 50,
++                'prefill_timesteps': 5000,
++                'explore_noise': 0.3,
++                'max_episode_length': 1000,
++                'collect_interval': 100,
++                'max_experience_size': 1000,
++                'save_episodes': False,
++                'discount': 0.99,
++                'lambda': 0.95,
++                'clip_actions': False,
++                'horizon': 1000,
++                'imagine_horizon': 15,
++                'free_nats': 3.0,
++                'kl_coeff': 1.0,
++                'dreamer_model': {
++                    'obs_space': [3, 64, 64],
++                    'num_outputs': 1,
++                    'custom_model': 'DreamerModel',
++                    'deter_size': 200,
++                    'stoch_size': 30,
++                    'depth_size': 32,
++                    'hidden_size': 400,
++                    'action_init_std': 5.0,
++                    },
++                'env_config': {'action_repeat': 2},
++                },
++            }
++
++        super().__init__(device)
++        self.outside_config = outside_config
++        
++        final_dreamer_config = {"DC" : outside_config}
++        flat_cfg = flatten_config(final_dreamer_config, ">")
++        for config_item in flat_cfg:
++            wandb.config[config_item] = flat_cfg[config_item]
++        
++        self.obs_shape = obs_shape
++        self.hidden_size_fcs = hidden_size_fcs
++        self.device = device
++        self.num_outputs = 1
++        
++        self.model_config = {
++            "hidden_size": self.hidden_size_fcs,
++            'deter_size': deter_size,
++            'stoch_size': stoch_size,
++            'depth_size': depth_size,
++            'action_init_std': min_std,
++            }
++        self.name = 'Dreamer'
++        
++
++    def setGymEnv(self, env, workdir):
++        self.env = env
++        sample_action_space = np.zeros(self.env.action_space.shape)
++        # In the future we may want to use the MBRL-Lib 
++        # implmentation of Planet here
++
++        # self.model = PlaNetModel #try this when we get the functions mapped properly
++
++        self.model = PLANet(obs_space= self.obs_shape,
++                            action_space= sample_action_space,
++                            num_outputs= self.num_outputs,
++                            model_config= self.model_config,
++                            name = self.name,
++                            device = self.device
++                            )
++        self.episodes = []
++        self.length = self.outside_config["dreamer"]['length']
++        self.timesteps = 0
++        self._max_experience_size = self.outside_config["dreamer"]['max_experience_size']
++        self._action_repeat = self.outside_config["dreamer"]["env_config"]["action_repeat"]
++        self._prefill_timesteps = self.outside_config["dreamer"]["prefill_timesteps"]
++        self._max_episode_length = self.outside_config["dreamer"]["max_episode_length"]
++
++        self.explore = self.outside_config["dreamer"]['explore_noise']
++        self.batch_size = self.outside_config["dreamer"]["batch_size"]
++        self.action_space = sample_action_space.shape[0]
++        self.imagine_horizon = self.outside_config['dreamer']["imagine_horizon"]
++        prefill_episodes = self._prefill_train_batch()
++        self._add(prefill_episodes)
++        self.workdir = workdir
++        self.curr_episode = 0
++        self.currently_testing = False
++        self.video_counter = 0
++        self.in_duckietown = False
++        
++    
++
++    # functions we added to make this work with MBRL-Lib
++    def set_curr_episode(self, episode):
++        self.curr_episode = episode
++        
++    def set_currently_testing(self, currently_testing):
++        self.currently_testing = currently_testing
++    
++    def reset_world_model(self, device=None):
++        self.model.get_initial_state(device=device)
++        
++    def _process_pixel_obs(self, obs: torch.Tensor) -> torch.Tensor:
++        return to_tensor(obs).float().to(self.device) / 256.0 - 0.5
++    
++    def _process_batch(
++        self, batch: TransitionBatch, as_float: bool = True, pixel_obs: bool = False
++    ) -> Tuple[torch.Tensor, ...]:
++        # `obs` is a sequence, so `next_obs` is not necessary
++        # sequence iterator samples full sequences, so `dones` not necessary either
++        obs, action, _, rewards, _ = super()._process_batch(batch, as_float=as_float)
++        if pixel_obs:
++            obs = self._process_pixel_obs(obs)
++        return obs, action, rewards
++
++    def compute_dreamer_loss(self,
++                         obs,
++                         action,
++                         reward,
++                         imagine_horizon,
++                         discount=0.99,
++                         lambda_=0.95,
++                         kl_coeff=1.0,
++                         free_nats=3.0,
++                         log=True):
++        """Constructs loss for the Dreamer objective
++            Args:
++                obs (TensorType): Observations (o_t)
++                action (TensorType): Actions (a_(t-1))
++                reward (TensorType): Rewards (r_(t-1))
++                model (TorchModelV2): DreamerModel, encompassing all other models
++                imagine_horizon (int): Imagine horizon for actor and critic loss
++                discount (float): Discount
++                lambda_ (float): Lambda, like in GAE
++                kl_coeff (float): KL Coefficient for Divergence loss in model loss
++                free_nats (float): Threshold for minimum divergence in model loss
++                log (bool): If log, generate gifs
++            """
++        encoder_weights = list(self.model.encoder.parameters())
++        decoder_weights = list(self.model.decoder.parameters())
++        reward_weights = list(self.model.reward.parameters())
++        dynamics_weights = list(self.model.dynamics.parameters())
++        critic_weights = list(self.model.value.parameters())
++        model_weights = list(encoder_weights + decoder_weights + reward_weights +
++                            dynamics_weights)
++
++        device = self.device
++        # PlaNET Model Loss
++        latent = self.model.encoder(obs)
++        istate = self.model.dynamics.get_initial_state(obs.shape[0], self.device)
++        post, prior = self.model.dynamics.observe(latent, action, istate)
++        features = self.model.dynamics.get_feature(post)
++        image_pred = self.model.decoder(features)
++        reward_pred = self.model.reward(features)
++        image_loss = -torch.mean(image_pred.log_prob(obs))
++        reward_loss = -torch.mean(reward_pred.log_prob(reward))
++        prior_dist = self.model.dynamics.get_dist(prior[0], prior[1])
++        post_dist = self.model.dynamics.get_dist(post[0], post[1])
++        div = torch.mean(
++            torch.distributions.kl_divergence(post_dist, prior_dist).sum(dim=2))
++        div = torch.clamp(div, min=free_nats)
++        model_loss = kl_coeff * div + reward_loss + image_loss
++
++        # Actor Loss
++        with torch.no_grad():
++            actor_states = [v.detach() for v in post]
++        with FreezeParameters(model_weights):
++            imag_feat = self.model.imagine_ahead(actor_states, imagine_horizon)
++        with FreezeParameters(model_weights + critic_weights):
++            reward = self.model.reward(imag_feat).mean
++            value = self.model.value(imag_feat).mean
++        pcont = discount * torch.ones_like(reward)
++        returns = self._lambda_return(reward[:-1], value[:-1], pcont[:-1], value[-1],
++                                lambda_)
++        discount_shape = pcont[:1].size()
++        discount = torch.cumprod(
++            torch.cat([torch.ones(*discount_shape).to(device), pcont[:-2]], dim=0),
++            dim=0)
++        actor_loss = -torch.mean(discount * returns)
++
++        # Critic Loss
++        with torch.no_grad():
++            val_feat = imag_feat.detach()[:-1]
++            target = returns.detach()
++            val_discount = discount.detach()
++        val_pred = self.model.value(val_feat)
++        critic_loss = -torch.mean(val_discount * val_pred.log_prob(target))
++
++        # Logging purposes
++        prior_ent = torch.mean(prior_dist.entropy())
++        post_ent = torch.mean(post_dist.entropy())
++
++        log_gif = None
++
++        if log:
++            log_gif = self._log_summary(obs, action, latent, image_pred)
++
++        return_dict = {
++            "model_loss": model_loss,
++            "reward_loss": reward_loss,
++            "image_loss": image_loss,
++            "divergence": div,
++            "actor_loss": actor_loss,
++            "critic_loss": critic_loss,
++            "prior_ent": prior_ent,
++            "post_ent": post_ent,
++        }
++
++        if log_gif is not None:
++            return_dict["log_gif"] = self._postprocess_gif(log_gif)
++        return return_dict
++
++    # Loss function for dreamer 
++    # Different from Planet cause more networks
++    def loss(
++            self,
++            batch: TransitionBatch,
++            target: Optional[torch.Tensor] = None,
++            reduce: bool = True,
++        ) -> Tuple[torch.Tensor, Dict[str, Any]]:
++            """Computes the Dreamer loss given a batch of transitions.
++
++            """
++            obs, action, rewards = self._process_batch(batch, pixel_obs=True)
++
++            # hacky check to see if we are using the duckietown environment
++            # I just see if the obs shape ends in 3, for the other envs it does not 
++            if obs.shape[-1] == 3:
++                self.in_duckietown = True
++            
++            if self.in_duckietown:
++                obs = obs.permute((0,1,4,2,3))
++            
++            
++            return_dict = self.compute_dreamer_loss(obs, action, rewards, self.imagine_horizon)
++
++            dreamer_obs_loss = return_dict["image_loss"]
++            dreamer_reward_loss = return_dict["reward_loss"]
++            dreamer_kl_loss = return_dict["divergence"]
++            
++            meta = {
++                "reconstruction": None,
++                "observations_loss": dreamer_obs_loss.detach().mean().item(),
++                "reward_loss": dreamer_reward_loss.detach().mean().item(),
++                "kl_loss": dreamer_kl_loss.detach().mean().item(),
++            }
++            
++            return return_dict["model_loss"], meta
++
++    def eval_score(
++        self, batch: TransitionBatch, target: Optional[torch.Tensor] = None
++    ) -> Tuple[torch.Tensor, Dict[str, Any]]:
++        """Computes an evaluation score for the model over the given input/target.
++
++        This is equivalent to calling loss(batch, reduce=False)`.
++        """
++        with torch.no_grad():
++            return self.loss(batch, reduce=False)
++
++    # again, Dreamer update is fundamentally different from
++    # from planet update, which causes problems when trying
++    # to integrate it into this library
++    def dreamer_update(self, dreamer_loss):
++        
++        self.dreamer_optim.zero_grad()
++        dreamer_loss.backward()
++        self.dreamer_optim.step()
++
++        return dreamer_loss
++
++    def dreamer_loss(self, train_batch):
++        """ calculates dreamer loss."""
++
++        log_gif = False
++        if "log_gif" in train_batch:
++            log_gif = True
++
++        self.stats_dict = self.compute_dreamer_loss(
++            train_batch["obs"],
++            train_batch["actions"],
++            train_batch["rewards"],
++            self.outside_config["dreamer"]["imagine_horizon"],
++            self.outside_config["dreamer"]["discount"],
++            self.outside_config["dreamer"]["lambda"],
++            self.outside_config["dreamer"]["kl_coeff"],
++            self.outside_config["dreamer"]["free_nats"],
++            log_gif,
++        )
++
++        loss_dict = self.stats_dict
++        return loss_dict
++    
++    def _prefill_train_batch(self, ):
++        """ Prefill episodes before the training begins."""
++        
++        self.timesteps = 2
++        obs = self.env.reset()
++        episode = Episode(obs, self.action_space)
++        episodes = []
++        
++        while self.timesteps < self._prefill_timesteps: 
++            action, logp, state = self.prefill_action_sampler_fn(None, 
++                                                            self.timesteps)
++            action = action.squeeze()
++            obs, reward, done, _ = self.env.step(action.numpy())
++            episode.append((obs, action, reward, done))
++            self.timesteps += self._action_repeat       
++            if done or self.timesteps == self._prefill_timesteps - 1:
++                episodes.append(episode.todict())
++                obs = self.env.reset() 
++                if done:
++                    episode.reset(obs)
++        del episode
++        return episodes        
++    
++    def _data_collect(self):
++        """ Collect data from the policy after every epoch. """
++        
++        obs = self.env.reset()
++        state = self.model.get_initial_state(self.device)
++        episode = Episode(obs, self.action_space)
++        episodes = []
++        
++        max_len = self._max_episode_length // self._action_repeat
++        for i in range(max_len):
++            action, logp, state = self.action_sampler_fn(
++                    ((episode.obs[-1] / 255.0) - 0.5).unsqueeze(0).to(
++                    self.device), state, self.explore, False)
++            obs, reward, done, _ = self.env.step(action.detach().cpu().numpy())
++            episode.append((obs, action.detach().cpu(), reward, done))
++            if done or i == max_len - 1:
++                episodes.append(episode.todict())
++                break
++        del episode
++        return episodes
++    
++    def _test(self):
++        """ Test the model after every few intervals."""
++        
++        obs = self.env.reset()
++        state = self.model.get_initial_state(self.device)
++        obs = torch.FloatTensor(np.ascontiguousarray(obs.transpose((2, 0, 1))))
++        
++        tot_reward = 0
++        done = False
++        while not done:
++            action, logp, state = self.action_sampler_fn(
++                        ((obs / 255.0) - 0.5).unsqueeze(0).to(self.device), state, self.explore, True)
++            obs, reward, done, _ = self.env.step(action.detach().cpu().numpy())
++            obs = obs.transpose((2, 0, 1))
++            obs = torch.FloatTensor(np.ascontiguousarray(obs))
++            tot_reward += reward
++        return tot_reward
++
++    def _add(self, batch):
++        """ Adds the collected episode samples as well as the prefilled
++            episode samples into the episode memory."""
++        
++        self.episodes.extend(batch)
++        
++        if len(self.episodes) > self._max_experience_size:
++            remove_episode_index = len(self.episodes) -\
++                                        self._max_experience_size
++            self.episodes = self.episodes[remove_episode_index:]
++        
++        if self.outside_config["dreamer"]["save_episodes"] and\
++            self.trainer is not None and self.trainer.log_dir is not None:
++            save_episodes = np.array(self.episodes)
++            if not os.path.exists(f'{self.trainer.log_dir}/episodes'):
++                os.makedirs(f'{self.trainer.log_dir}/episodes', exist_ok=True)
++            np.savez(f'{self.trainer.log_dir}/episodes/episodes.npz', save_episodes)
++
++    def _sample(self, batch_size):
++        """ Samples a batch of episode of length T from the config."""
++        
++        episodes_buffer = []
++        while len(episodes_buffer) < batch_size:
++            rand_index = random.randint(0, len(self.episodes) - 1)
++            episode = self.episodes[rand_index]
++            if episode["count"] < self.length:
++                continue
++            available = episode["count"] - self.length
++            index = int(random.randint(0, available))
++            episodes_buffer.append({"count": self.length,
++                                    "obs": episode["obs"][index : index + self.length],
++                                    "action": episode["action"][index: index + self.length],
++                                    "reward": episode["reward"][index: index + self.length],
++                                    "done": episode["done"][index: index + self.length],
++                                    })
++        total_batch = {}
++        for k in episodes_buffer[0].keys():
++            if k == "count" or k == "state":
++                continue
++            else:
++                total_batch[k] = torch.stack([e[k] for e in episodes_buffer], axis=0)
++        return total_batch
++    
++    def _train_batch(self, batch_size):
++        for _ in range(self.outside_config["dreamer"]["collect_interval"]):
++            total_batch = self._sample(batch_size)
++            def return_batch(i):
++                return (total_batch["obs"][i] / 255.0 - 0.5),\
++                    total_batch["action"][i], total_batch["reward"][i], total_batch["done"][i]
++            for i in range(batch_size):
++                yield return_batch(i)
++    
++    def prefill_action_sampler_fn(self, state, timestep):
++        """Action sampler function during prefill phase where
++        actions are sampled uniformly [-1, 1].
++        """
++        # Custom Exploration
++        logp = [0.0]
++        # Random action in space [-1.0, 1.0]
++        action = torch.FloatTensor(1, self.model.action_size).uniform_(-1.0, 
++                                                1.0)
++        state = self.model.get_initial_state(self.device)
++        return action, logp, state
++    
++    def action_sampler_fn(self, obs, state, explore, test=False):
++        """Action sampler during training phase, actions
++        are evaluated through DreamerPolicy and 
++        an additive gaussian is added
++        to incentivize exploration."""
++        
++        action, logp, state_new = self.model.policy(obs, state, 
++                                    explore=not(test))
++        if not test:
++            action = Normal(action, explore).sample()
++        action = torch.clamp(action, min=-1.0, max=1.0)
++        return action, logp, state_new
++    
++    def training_step(self, batch, batch_idx):
++        """ Trains the model on the samples collected."""
++        
++        obs, action, reward, __ = batch
++        loss = self.dreamer_loss({"obs":obs, 
++                        "actions":action, "rewards":reward, 
++                        "log_gif": True})
++        outputs = []
++        for k, v in loss.items():
++            if "loss" in k:
++                self.log(k, v)
++            if k in ["model_loss", "critic_loss", "actor_loss"]:
++                outputs.append(v)
++        return sum(outputs)
++    
++    def training_epoch_end(self, outputs):
++        """ Collects data samples after every epoch end and tests the
++            model on the environment of maximum length from the config every
++            few intervals."""
++        
++        total_loss = 0
++        for out in outputs:
++            total_loss += out['loss'].item()
++        if len(outputs) != 0:
++            total_loss /= len(outputs)     
++        self.log('loss', total_loss)
++
++        with torch.no_grad():
++            data_collection_episodes = self._data_collect()
++            self._add(data_collection_episodes)
++            data_dict = data_collection_episodes[0]
++            self.log('avg_reward_collection', torch.mean(data_dict['reward']))
++
++        if self.current_epoch > 0 and \
++                self.current_epoch % self.outside_config["trainer_params"]["val_check_interval"] == 0:
++            self.model.eval()
++            episode_reward = self._test()
++            self.log('avg_reward_test', episode_reward)
++            self.model.train()
++    
++    def _collate_fn(self, batch):
++        return_batch = {}
++        for k in batch[0].keys():
++            if k == 'count':
++                return_batch[k] = torch.LongTensor([data[k] for data in batch])
++            return_batch[k] = torch.stack([data[k] for data in batch])
++        return return_batch
++
++    def train_dataloader(self) -> DataLoader:
++        """Get train loader"""
++        dataset = ExperienceSourceDataset(self._train_batch(self.batch_size))
++        dataloader = DataLoader(dataset=dataset, 
++                                    batch_size=self.batch_size,        
++                                    pin_memory=True, 
++                                    num_workers=1)
++        return dataloader
++    
++    def configure_optimizers(self,):
++        """ Configure optmizers."""
++
++        encoder_weights = list(self.model.encoder.parameters())
++        decoder_weights = list(self.model.decoder.parameters())
++        reward_weights = list(self.model.reward.parameters())
++        dynamics_weights = list(self.model.dynamics.parameters())
++        actor_weights = list(self.model.actor.parameters())
++        critic_weights = list(self.model.value.parameters())
++        
++        model_opt = Adam(
++            [
++            {'params': encoder_weights + decoder_weights + reward_weights + dynamics_weights,
++            'lr':self.outside_config["dreamer"]["td_model_lr"]},
++            {'params':actor_weights, 'lr':self.outside_config["dreamer"]["actor_lr"]},
++            {'params':critic_weights, 'lr':self.outside_config["dreamer"]["critic_lr"]}],
++            lr=self.outside_config["dreamer"]["default_lr"],
++            weight_decay=self.outside_config["dreamer"]["weight_decay"])
++        self.dreamer_optim = model_opt
++        return model_opt
++    
++    def _postprocess_gif(self, gif: np.ndarray):
++        gif = gif.detach().cpu().numpy()
++        gif = np.clip(255*gif, 0, 255).astype(np.uint8)
++        B, T, C, H, W = gif.shape
++        frames = gif.transpose((1, 2, 3, 0, 4)).reshape((1, T, C, H, B * W))
++        frames = frames.squeeze(0)
++        
++        def display_image(frame):
++            frame = frame.transpose((1, 2, 0))
++            return Image.fromarray(frame)
++        
++        # create destination path for movies 
++        movie_save_folder = f'{self.workdir}/movies'
++        Path(movie_save_folder).mkdir(parents=True, exist_ok=True)
++        video_name = f"movie_e{self.curr_episode}_t{int(self.currently_testing)}_c{self.video_counter}"
++        
++        self.video_counter += 1
++        # # create a videowriter
++        # videodims = (frames.shape[-2], frames.shape[-1])
++        # fourcc = cv2.VideoWriter_fourcc(*'MPEG')
++        # video = cv2.VideoWriter(f"{movie_save_folder}/{video_name}.mp4",fourcc, 10,videodims)
++        
++        # # write to video
++        # for frame in list(frames):
++        #     curr_img_frame = display_image(frame)
++        #     video.write(cv2.cvtColor(np.array(curr_img_frame), cv2.COLOR_RGB2BGR))
++        # video.release()
++        
++        if self.video_counter<200 or self.video_counter%50: 
++            # also save gif
++            img, *imgs = [display_image(frame) for frame in list(frames)]
++            # img.save(f'{self.trainer.log_dir}/movies/movie_{self.current_epoch}.gif', format='GIF', append_images=imgs,
++            #  save_all=True, loop=0)
++            
++            img_save_loc = f'{movie_save_folder}/{video_name}.gif'
++            img.save(img_save_loc, format='GIF', append_images=imgs,
++            save_all=True, loop=0)
++            
++            image_array = [display_image(frame) for frame in list(frames)]
++            # images = wandb.Image(image_array, caption=f"{video_name}")
++            wandb_saved_gif = wandb.Image(img_save_loc)
++            wandb.log({"video": wandb_saved_gif, "global_episode": self.curr_episode})
++        
++        return frames
++    
++    def _log_summary(self, obs, action, embed, image_pred):
++        truth = obs[:6] + 0.5
++        recon = image_pred.mean[:6]
++        istate = self.model.dynamics.get_initial_state(6, self.device)
++        init, _ = self.model.dynamics.observe(embed[:6, :5], 
++                                            action[:6, :5], istate)
++        init = [itm[:6, -1] for itm in init]
++        prior = self.model.dynamics.imagine(action[:6, 5:], init)
++        openl = self.model.decoder(self.model.dynamics.get_feature(prior)).mean
++
++        mod = torch.cat([recon[:, :5] + 0.5, openl + 0.5], 1)
++        error = (mod - truth + 1.0) / 2.0
++        return torch.cat([truth, mod, error], 3)
++    
++    def _lambda_return(self, reward, value, pcont, bootstrap, lambda_):
++        def agg_fn(x, y):
++            return y[0] + y[1] * lambda_ * x
++
++        next_values = torch.cat([value[1:], bootstrap[None]], dim=0)
++        inputs = reward + pcont * next_values * (1 - lambda_)
++
++        last = bootstrap
++        returns = []
++        for i in reversed(range(len(inputs))):
++            last = agg_fn(last, [inputs[i], pcont[i]])
++            returns.append(last)
++
++        returns = list(reversed(returns))
++        returns = torch.stack(returns, dim=0)
++        return returns
+\ No newline at end of file
+diff --git a/mbrl/models/model.py b/mbrl/models/model.py
+index 6c7536a..f5d7ee7 100644
+--- a/mbrl/models/model.py
++++ b/mbrl/models/model.py
+@@ -124,6 +124,9 @@ class Model(nn.Module, abc.ABC):
+                 from strings to objects with metadata computed by the model
+                 (e.g., reconstructions, entropy, etc.) that will be used for logging.
+         """
++    # Changes to model class because Dreamer is different
++    def dreamer_update(self):
++        return None
+ 
+     def update(
+         self,
+@@ -153,16 +156,19 @@ class Model(nn.Module, abc.ABC):
+              (dict): any additional metadata dictionary computed by :meth:`loss`.
+         """
+         self.train()
+-        optimizer.zero_grad()
++        # Changes to model class because Dreamer is different
++        # optimizer.zero_grad()
+         loss, meta = self.loss(model_in, target)
+-        loss.backward()
++        # loss.backward()
+         if meta is not None:
+             with torch.no_grad():
+                 grad_norm = 0.0
+                 for p in list(filter(lambda p: p.grad is not None, self.parameters())):
+                     grad_norm += p.grad.data.norm(2).item() ** 2
+                 meta["grad_norm"] = grad_norm
+-        optimizer.step()
++        # optimizer.step()
++        # Changes to model class because Dreamer is different
++        loss = self.dreamer_update(loss)
+         return loss.item(), meta
+ 
+     def reset(
+diff --git a/mbrl/models/planet_imp.py b/mbrl/models/planet_imp.py
+new file mode 100644
+index 0000000..21e7fca
+--- /dev/null
++++ b/mbrl/models/planet_imp.py
+@@ -0,0 +1,559 @@
++###################
++##### FOR GLEN ####
++###################
++# This implementation of PlaNet servers as the world model for our Dreamer
++# implementation.
++###################
++import torch
++import torch.nn as nn
++import torch.nn.functional as F
++
++###################
++##### FOR GLEN ####
++###################
++# This is the PlaNet implementation we ported from Chandramouli Rajagopalan’s 
++# pytorch implementation of Dreamer here https://github.com/chamorajg/pl-dreamer 
++# which has helper functions for the non-MBRL-Lib PlaNet, and all of the networks 
++# (Action and Value Nets as well) and are siloed from the dependencies for QA 
++# of this version of PlaNet outside of MBRL-Lib PlaNet.
++###################
++import torch.distributions as td
++
++import numpy as np
++
++from typing import Any, List, Tuple, Optional
++TensorType = Any
++
++def atanh(x):
++    return 0.5 * torch.log((1 + x) / (1 - x))
++
++class TanhBijector(torch.distributions.Transform):
++    def __init__(self):
++        super().__init__()
++        self.bijective = True
++        self.domain = torch.distributions.constraints.real
++        self.codomain = torch.distributions.constraints.interval(-1.0, 1.0)
++
++    @property
++    def sign(self): return 1.
++
++    def _call(self, x): return torch.tanh(x)
++
++    def _inverse(self, y: torch.Tensor):
++        y = torch.where(
++            (torch.abs(y) <= 1.),
++            torch.clamp(y, -0.99999997, 0.99999997),
++            y)
++        y = atanh(y)
++        return y
++
++    def log_abs_det_jacobian(self, x, y):
++        return 2. * (np.log(2) - x - F.softplus(-2. * x))
++
++class Reshape(nn.Module):
++
++    def __init__(self, shape: List):
++        super().__init__()
++        self.shape = shape
++
++    def forward(self, x):
++        return x.view(*self.shape)
++
++class Encoder(nn.Module):
++    """ As mentioned in the paper, VAE is used
++        to calculate the state posterior needed 
++        for parameter learning in RSSM. The training objective
++        here is to create bound on the data. Here losses
++        are written only for observations as rewards losses
++        follow them. """
++
++    def __init__(self,
++                    device,
++                    depth : int = 32, 
++                    input_channels : Optional[int] = 3
++                    ):
++        super(Encoder, self).__init__()
++        """
++        Initialize the parameters of the Encoder.
++        Args
++            depth (int) : Number of channels in the first convolution layer.
++            input_channels (int) : Number of channels in the input observation.
++        """
++        self.depth = depth
++        self.input_channels = input_channels
++        self.encoder = nn.Sequential(
++                nn.Conv2d(self.input_channels, self.depth, 4, stride=2),
++                nn.ReLU(),
++                nn.Conv2d(self.depth, self.depth * 2, 4, stride=2),
++                nn.ReLU(),
++                nn.Conv2d(self.depth * 2, self.depth * 4, 4, stride=2),
++                nn.ReLU(),
++                nn.Conv2d(self.depth * 4, self.depth * 8, 4, stride=2),
++                nn.ReLU(),
++        )
++        self.encoder = self.encoder.to(device)
++    
++    def forward(self, x):
++        """ Flatten the input observation [batch, horizon, 3, 64, 64]
++            into shape [batch * horizon, 3, 64, 64] before feeding it
++            to the input. """
++        orig_shape = x.shape
++        x = x.reshape(-1, *x.shape[-3:])
++        x = self.encoder(x)
++        x = x.reshape(*orig_shape[:-3], -1)
++        return x
++
++
++class Decoder(nn.Module):
++    """
++    Takes the input from the RSSM model
++    and then decodes it back to images from
++    the latent space model. It is mainly used
++    in calculating losses.
++    """
++    def __init__(self, device,
++                    input_size : int,
++                    depth: int = 32,
++                    shape: Tuple[int] = (3, 64, 64)):
++        super(Decoder, self).__init__()
++        self.depth = depth
++        self.shape = shape
++        self.decoder = nn.Sequential(
++            nn.Linear(input_size, 32 * self.depth),
++            Reshape([-1, 32 * self.depth, 1, 1]),
++            nn.ConvTranspose2d(32 * self.depth, 4 * self.depth, 5, stride=2),
++            nn.ReLU(),
++            nn.ConvTranspose2d(4 * self.depth, 2 * self.depth, 5, stride=2),
++            nn.ReLU(),
++            nn.ConvTranspose2d(2 * self.depth, self.depth, 6, stride=2),
++            nn.ReLU(),
++            nn.ConvTranspose2d(self.depth, self.shape[0], 6, stride=2),
++        )
++        self.decoder = self.decoder.to(device)
++    
++    def forward(self, x):
++        orig_shape = x.shape
++        x = self.decoder(x)
++        reshape_size = orig_shape[:-1] + self.shape
++        mean = x.view(*reshape_size)
++        return td.Independent(  td.Normal(mean, 1), len(self.shape))
++
++
++class ActionDecoder(nn.Module):
++    """
++    ActionDecoder is the policy module in Dreamer.
++    
++    It outputs a distribution parameterized by mean and std, later to be
++    transformed by a custom TanhBijector.
++    """
++    def __init__(self,
++                 device,
++                 input_size: int,
++                 action_size: int,
++                 layers: int,
++                 units: int,
++                 dist: str = "tanh_normal",
++                 min_std: float = 1e-4,
++                 init_std: float = 5.0,
++                 mean_scale: float = 5.0):
++        super(ActionDecoder, self).__init__()
++        self.layrs = layers
++        self.units = units
++        self.dist = dist
++        self.act = nn.ReLU
++        self.min_std = min_std
++        self.init_std = init_std
++        self.mean_scale = mean_scale
++        self.action_size = action_size
++
++        self.layers = []
++        self.softplus = nn.Softplus()
++
++        # MLP Construction
++        cur_size = input_size
++        for _ in range(self.layrs):
++            self.layers.extend([nn.Linear(cur_size, self.units), self.act()])
++            cur_size = self.units
++        self.layers.append(nn.Linear(cur_size, 2 * action_size))
++        self.model = nn.Sequential(*self.layers)
++        self.model = self.model.to(device)
++    
++    def forward(self, x):
++        raw_init_std = np.log(np.exp(self.init_std) - 1)
++        x = self.model(x)
++        mean, std = torch.chunk(x, 2, dim=-1)
++        mean = self.mean_scale * torch.tanh(mean / self.mean_scale)
++        std = self.softplus(std + raw_init_std) + self.min_std
++        dist = td.Normal(mean, std)
++        transforms = [TanhBijector()]
++        dist = td.transformed_distribution.TransformedDistribution(
++            dist, transforms)
++        dist = td.Independent(dist, 1)
++        return dist
++
++
++class DenseDecoder(nn.Module):
++    """
++    FC network that outputs a distribution for calculating log_prob.
++    Used later in DreamerLoss.
++    """
++
++    def __init__(self,
++                 device,
++                 input_size: int,
++                 output_size: int,
++                 layers: int,
++                 units: int,
++                 dist: str = "normal"):
++        """Initializes FC network
++        Args:
++            input_size (int): Input size to network
++            output_size (int): Output size to network
++            layers (int): Number of layers in network
++            units (int): Size of the hidden layers
++            dist (str): Output distribution, parameterized by FC output
++                logits.
++            act (Any): Activation function
++        """
++        super().__init__()
++        self.layrs = layers
++        self.units = units
++        self.act = nn.ELU
++        self.dist = dist
++        self.input_size = input_size
++        self.output_size = output_size
++        self.layers = []
++        cur_size = input_size
++        for _ in range(self.layrs):
++            self.layers.extend([nn.Linear(cur_size, self.units), self.act()])
++            cur_size = units
++        self.layers.append(nn.Linear(cur_size, output_size))
++        self.model = nn.Sequential(*self.layers)
++        self.model = self.model.to(device)
++
++    def forward(self, x):
++        x = self.model(x)
++        if self.output_size == 1:
++            x = torch.squeeze(x)
++        if self.dist == "normal":
++            output_dist = td.Normal(x, 1)
++        elif self.dist == "binary":
++            output_dist = td.Bernoulli(logits=x)
++        else:
++            raise NotImplementedError("Distribution type not implemented!")
++        return td.Independent(output_dist, 0)
++
++
++class RSSM(nn.Module):
++    """RSSM is the core recurrent part of the PlaNET module. It consists of
++    two networks, one (obs) to calculate posterior beliefs and states and
++    the second (img) to calculate prior beliefs and states. The prior network
++    takes in the previous state and action, while the posterior network takes
++    in the previous state, action, and a latent embedding of the most recent
++    observation.
++    """
++
++    def __init__(self,
++                 device,
++                 action_size: int,
++                 embed_size: int,
++                 stoch: int = 30,
++                 deter: int = 200,
++                 hidden: int = 200):
++        """Initializes RSSM
++        Args:
++            action_size (int): Action space size
++            embed_size (int): Size of ConvEncoder embedding
++            stoch (int): Size of the distributional hidden state
++            deter (int): Size of the deterministic hidden state
++            hidden (int): General size of hidden layers
++            act (Any): Activation function
++        """
++        super().__init__()
++        self.stoch_size = stoch
++        self.deter_size = deter
++        self.hidden_size = hidden
++        self.act = nn.ELU
++        # self.act = self.act.to(device)
++        self.obs1 = nn.Linear(embed_size + deter, hidden)
++        self.obs1 = self.obs1.to(device)
++        self.obs2 = nn.Linear(hidden, 2 * stoch)
++        self.obs2 = self.obs2.to(device)
++
++        self.cell = nn.GRUCell(self.hidden_size, hidden_size=self.deter_size)
++        self.cell = self.cell.to(device)
++        self.img1 = nn.Linear(stoch + action_size, hidden)
++        self.img1 = self.img1.to(device)
++        self.img2 = nn.Linear(deter, hidden)
++        self.img2 = self.img2.to(device)
++        self.img3 = nn.Linear(hidden, 2 * stoch)
++        self.img3 = self.img3.to(device)
++
++        self.softplus = nn.Softplus
++        # self.softplus = self.softplus.to(device)
++        
++        
++
++    def get_initial_state(self, batch_size: int, device) -> List[TensorType]:
++        """Returns the inital state for the RSSM, which consists of mean,
++        std for the stochastic state, the sampled stochastic hidden state
++        (from mean, std), and the deterministic hidden state, which is
++        pushed through the GRUCell.
++        Args:
++            batch_size (int): Batch size for initial state
++        Returns:
++            List of tensors
++        """
++        return [
++            torch.zeros(batch_size, self.stoch_size).to(device),
++            torch.zeros(batch_size, self.stoch_size).to(device),
++            torch.zeros(batch_size, self.stoch_size).to(device),
++            torch.zeros(batch_size, self.deter_size).to(device),
++        ]
++
++    def observe(self,
++                embed: TensorType,
++                action: TensorType,
++                state: List[TensorType] = None
++                ) -> Tuple[List[TensorType], List[TensorType]]:
++        """Returns the corresponding states from the embedding from ConvEncoder
++        and actions. This is accomplished by rolling out the RNN from the
++        starting state through eacn index of embed and action, saving all
++        intermediate states between.
++        Args:
++            embed (TensorType): ConvEncoder embedding
++            action (TensorType): Actions
++            state (List[TensorType]): Initial state before rollout
++        Returns:
++            Posterior states and prior states (both List[TensorType])
++        """
++        if state is None:
++            state = self.get_initial_state(action.size()[0])
++        
++        if embed.dim() <= 2:
++            embed = torch.unsqueeze(embed, 1)
++
++        if action.dim() <= 2:
++            action = torch.unsqueeze(action, 1)
++
++        embed = embed.permute(1, 0, 2)
++        action = action.permute(1, 0, 2)
++
++        priors = [[] for i in range(len(state))]
++        posts = [[] for i in range(len(state))]
++        last = (state, state)
++        for index in range(len(action)):
++            # Tuple of post and prior
++            last = self.obs_step(last[0], action[index], embed[index])
++            [o.append(s) for s, o in zip(last[0], posts)]
++            [o.append(s) for s, o in zip(last[1], priors)]
++
++        prior = [torch.stack(x, dim=0) for x in priors]
++        post = [torch.stack(x, dim=0) for x in posts]
++
++        prior = [e.permute(1, 0, 2) for e in prior]
++        post = [e.permute(1, 0, 2) for e in post]
++
++        return post, prior
++
++    def imagine(self, action: TensorType,
++                state: List[TensorType] = None) -> List[TensorType]:
++        """Imagines the trajectory starting from state through a list of actions.
++        Similar to observe(), requires rolling out the RNN for each timestep.
++        Args:
++            action (TensorType): Actions
++            state (List[TensorType]): Starting state before rollout
++        Returns:
++            Prior states
++        """
++        if state is None:
++            state = self.get_initial_state(action.size()[0])
++
++        action = action.permute(1, 0, 2)
++
++        indices = range(len(action))
++        priors = [[] for _ in range(len(state))]
++        last = state
++        for index in indices:
++            last = self.img_step(last, action[index])
++            [o.append(s) for s, o in zip(last, priors)]
++
++        prior = [torch.stack(x, dim=0) for x in priors]
++        prior = [e.permute(1, 0, 2) for e in prior]
++        return prior
++
++    def obs_step(
++            self, prev_state: TensorType, prev_action: TensorType,
++            embed: TensorType) -> Tuple[List[TensorType], List[TensorType]]:
++        """Runs through the posterior model and returns the posterior state
++        Args:
++            prev_state (TensorType): The previous state
++            prev_action (TensorType): The previous action
++            embed (TensorType): Embedding from ConvEncoder
++        Returns:
++            Post and Prior state
++        """
++        prior = self.img_step(prev_state, prev_action)
++        x = torch.cat([prior[3], embed], dim=-1)
++        x = self.obs1(x)
++        x = self.act()(x)
++        x = self.obs2(x)
++        mean, std = torch.chunk(x, 2, dim=-1)
++        std = self.softplus()(std) + 0.1
++        stoch = self.get_dist(mean, std).rsample()
++        post = [mean, std, stoch, prior[3]]
++        return post, prior
++
++    def img_step(self, prev_state: TensorType,
++                 prev_action: TensorType) -> List[TensorType]:
++        """Runs through the prior model and returns the prior state
++        Args:
++            prev_state (TensorType): The previous state
++            prev_action (TensorType): The previous action
++        Returns:
++            Prior state
++        """
++        x = torch.cat([prev_state[2], prev_action], dim=-1)
++        x = self.img1(x)
++        x = self.act()(x)
++        deter = self.cell(x, prev_state[3])
++        x = deter
++        x = self.img2(x)
++        x = self.act()(x)
++        x = self.img3(x)
++        mean, std = torch.chunk(x, 2, dim=-1)
++        std = self.softplus()(std) + 0.1
++        stoch = self.get_dist(mean, std).rsample()
++        return [mean, std, stoch, deter]
++
++    def get_feature(self, state: List[TensorType]) -> TensorType:
++        # Constructs feature for input to reward, decoder, actor, critic
++        return torch.cat([state[2], state[3]], dim=-1)
++
++    def get_dist(self, mean: TensorType, std: TensorType) -> TensorType:
++        return td.Normal(mean, std)
++
++
++# Dreamer Model
++class PLANet(nn.Module):
++    def __init__(self, obs_space, action_space, num_outputs, model_config,
++                 name, device):
++        super().__init__()
++
++        nn.Module.__init__(self)
++        #         'dreamer_model': {
++        #             'obs_space': [3, 64, 64],
++        #             'num_outputs': 1,
++        #             'custom_model': 'DreamerModel',
++        #             'deter_size': 200,
++        #             'stoch_size': 30,
++        #             'depth_size': 32,
++        #             'hidden_size': 400,
++        #             'action_init_std': 5.0,
++        #             },
++        self.depth = model_config["depth_size"]
++        self.deter_size = model_config["deter_size"]
++        self.stoch_size = model_config["stoch_size"]
++        self.hidden_size = model_config["hidden_size"]
++
++        self.action_size = action_space.shape[0]
++        self.device = device
++
++        self.encoder = Encoder(device, self.depth)
++        self.decoder = Decoder(device,
++            self.stoch_size + self.deter_size, depth=self.depth)
++        self.reward = DenseDecoder(device, self.stoch_size + self.deter_size, 1, 2,
++                                   self.hidden_size)
++        self.dynamics = RSSM(device,
++            self.action_size,
++            32 * self.depth,
++            stoch=self.stoch_size,
++            deter=self.deter_size)
++        self.actor = ActionDecoder(device, self.stoch_size + self.deter_size,
++                                   self.action_size, 4, self.hidden_size)
++        self.value = DenseDecoder(device, self.stoch_size + self.deter_size, 1, 3,
++                                  self.hidden_size)
++        self.state = None
++
++    def policy(self, obs: TensorType, state: List[TensorType], explore=True
++               ) -> Tuple[TensorType, List[float], List[TensorType]]:
++        """Returns the action. Runs through the encoder, recurrent model,
++        and policy to obtain action.
++        """
++        if state is None:
++            # self.state = self.get_initial_state(batch_size=obs.shape[0])
++            self.state = self.get_initial_state(self.device)
++        else:
++            self.state = state
++        post = self.state[:4]
++        action = self.state[4]
++
++        obs = obs.to(self.device)
++
++        embed = self.encoder(obs)
++        post, _ = self.dynamics.obs_step(post, action, embed)
++        feat = self.dynamics.get_feature(post)
++
++        action_dist = self.actor(feat)
++        if explore:
++            action = action_dist.sample()
++        else:
++            samples = []
++            for _ in range(1000):
++                samples.append(action_dist.sample())
++            action = torch.mean(torch.cat(samples), dim=0)
++            if action.ndim == 1:
++                action = action.unsqueeze(0)
++        logp = action_dist.log_prob(action)
++
++        self.state = post + [action]
++        return action, logp, self.state
++
++    def imagine_ahead(self, state: List[TensorType],
++                      horizon: int) -> TensorType:
++        """Given a batch of states, rolls out more state of length horizon.
++        """
++        start = []
++        for s in state:
++            s = s.contiguous().detach()
++            shpe = [-1] + list(s.size())[2:]
++            start.append(s.view(*shpe))
++
++        def next_state(state):
++            feature = self.dynamics.get_feature(state).detach()
++            action = self.actor(feature).rsample()
++            next_state = self.dynamics.img_step(state, action)
++            return next_state
++
++        last = start
++        outputs = [[] for i in range(len(start))]
++        for _ in range(horizon):
++            last = next_state(last)
++            [o.append(s) for s, o in zip(last, outputs)]
++        outputs = [torch.stack(x, dim=0) for x in outputs]
++
++        imag_feat = self.dynamics.get_feature(outputs)
++        return imag_feat
++
++    def get_initial_state(self, device) -> List[TensorType]:
++        self.state = self.dynamics.get_initial_state(1, device) + [
++            torch.zeros(1, self.action_size).to(device)
++        ]
++        return self.state
++
++    def value_function(self) -> TensorType:
++        return None
++
++
++class FreezeParameters:
++    def __init__(self, parameters):
++        self.parameters = parameters
++        self.param_states = [p.requires_grad for p in self.parameters]
++
++    def __enter__(self):
++        for param in self.parameters:
++            param.requires_grad = False
++
++    def __exit__(self, exc_type, exc_val, exc_tb):
++        for i, param in enumerate(self.parameters):
++            param.requires_grad = self.param_states[i]
+\ No newline at end of file
+diff --git a/mbrl/models/planet_legacy.py b/mbrl/models/planet_legacy.py
+new file mode 100644
+index 0000000..0a34d2c
+--- /dev/null
++++ b/mbrl/models/planet_legacy.py
+@@ -0,0 +1,138 @@
++###################
++##### FOR GLEN ####
++###################
++# This implementation of PlaNet servers as the world model for our Dreamer
++# implementation.
++
++###################
++##### FOR GLEN ####
++###################
++# This was used to do QA on the PlaNet implementation we ported from 
++# Chandramouli Rajagopalan’s pytorch implementation of Dreamer here 
++# https://github.com/chamorajg/pl-dreamer , which has helper functions for the 
++# non-MBRL-Lib PlaNet, but do not get used with MBRL-Lib or Duckietown. 
++######################################
++import torch
++import numpy as np
++from typing import Tuple, Any, Union, Optional, Dict
++import gym
++TensorType = Any
++
++class DMControlSuiteEnv:
++
++    def __init__(self, 
++                name: str, 
++                max_episode_length: int = 1000,
++                action_repeat:int = 2,
++                size: Tuple[int] = (64, 64),
++                camera: Optional[Any] = None,
++                ):
++        domain, task = name.split('_', 1)
++        if domain == 'cup':
++            domain = 'ball_in_cup'
++        if isinstance(domain, str):
++            from dm_control import suite
++            self._env = suite.load(domain, task)
++        else:
++            assert task is None
++            self._env = domain()
++        self._size = size
++        if camera is None:
++            camera = dict(quadruped=2).get(domain, 0)
++        self._camera = camera
++        self._step = 0
++        self._max_episode_length = max_episode_length
++        self._action_repeat = action_repeat
++    
++    @property
++    def observation_space(self):
++        spaces = {}
++        for key, value in self._env.observation_spec().items():
++            spaces[key] = gym.spaces.Box(
++                -np.inf, np.inf, value.shape, dtype=np.float32)
++            spaces['image'] = gym.spaces.Box(
++                0, 255, self._size + (3,), dtype=np.uint8)
++        return gym.spaces.Dict(spaces)
++
++    @property
++    def action_space(self):
++        spec = self._env.action_spec()
++        return gym.spaces.Box(spec.minimum, spec.maximum, dtype=np.float32)
++
++    def step(self, action):
++        reward = 0
++        obs = None
++        for k in range(self._action_repeat):
++            time_step = self._env.step(action)
++            self._step += 1
++            obs = dict(time_step.observation)
++            obs['image'] = self.render()
++            reward += time_step.reward or 0
++            done = time_step.last() or self._step == self._max_episode_length
++            if done:
++                break
++        info = {'discount': np.array(time_step.discount, np.float32)}
++        return obs["image"], reward, done, info
++
++    def reset(self):
++        time_step = self._env.reset()
++        self._step = 0
++        obs = dict(time_step.observation)
++        obs['image'] = self.render()
++        return obs["image"]
++
++    def render(self, *args, **kwargs):
++        if kwargs.get('mode', 'rgb_array') != 'rgb_array':
++            raise ValueError("Only render mode 'rgb_array' is supported.")
++        return self._env.physics.render(*self._size, camera_id=self._camera)
++
++class Episode(object):
++    """ Episode Class which contains the related
++        attributes of an environment episode in the
++        the format similar to queue"""
++    
++    def __init__(self,
++                obs:TensorType,
++                action_space: int = 1,
++                action_repeat: int = 2) -> None:
++        """Initializes a list of all episode attributes"""
++        self.action_space = action_space
++        self.action_repeat = action_repeat
++        obs = torch.FloatTensor(np.ascontiguousarray(obs.transpose
++                                                        ((2, 0, 1))))
++        self.t = 1
++        self.obs = [obs]
++        self.action = [torch.FloatTensor(torch.zeros(1, self.action_space)).squeeze()]
++        self.reward = [0]
++        self.done = [False]
++    
++    def append(self, 
++                episode_attrs: Tuple[TensorType]) -> None:
++        """ Appends episode attribute to the list."""
++        obs, action, reward, done = episode_attrs
++        obs = torch.FloatTensor(np.ascontiguousarray(obs.transpose
++                                                        ((2, 0, 1))))
++        self.t += 1
++        self.obs.append(obs)
++        self.action.append(action)
++        self.reward.append(reward)
++        self.done.append(done)
++    
++    def reset(self, 
++            obs:TensorType) -> None:
++        """ Resets Episode list of attributes."""
++        obs = torch.FloatTensor(np.ascontiguousarray(obs.transpose
++                                                        ((2, 0, 1))))
++        self.t = 1
++        self.obs = [obs]
++        self.action = [torch.FloatTensor(torch.zeros(1, self.action_space)).squeeze()]
++        self.reward = [0]
++        self.done = [False]
++    
++    def todict(self,) -> Dict:
++        episode_dict = dict({'count': self.t,
++                                'obs': torch.stack(self.obs),
++                                'action': torch.cat(self.action),
++                                'reward': torch.FloatTensor(self.reward),
++                                'done': torch.BoolTensor(self.done)})
++        return 
+\ No newline at end of file
+diff --git a/mbrl/planning/dreamer_wrapper.py b/mbrl/planning/dreamer_wrapper.py
+new file mode 100644
+index 0000000..b7ca43c
+--- /dev/null
++++ b/mbrl/planning/dreamer_wrapper.py
+@@ -0,0 +1,71 @@
++###################
++##### FOR GLEN ####
++###################
++# This library uses SAC as a "planner" or "agent" for some dynamics models. We
++# tried to get Dreamer to be an agent similar to this approach. But the planner
++# isn't supposed to have access to the dynamics model for planning, but Dreamer
++# needs access to "imagine" future trajectories to determine what action to
++# take. We decided it would be simpler to instead put the planning part inside
++# the world model, and query the world model for actions as well. 
++
++# We also need to differentiate through the dynamics model, using analytical
++# gradients and stop gradients - but were if unsure that the MBRL-Lib accounted
++# for this. All of these are design choices needing to be made before being neck
++# deep in an implementation, with a commitment made in algorithms/dreamer.py
++# before developing models/dreamer.py or planning/dreamer_wrapper.py. It would
++# seem usually you take your algorithm and use it in the library, but in this
++# case, you need to design your algorithm around MBRL with its training helper
++# functions. 
++
++# This was the beginning of our properly MBRL-Lib philosophy- abiding version of
++# Dreamer, with a proper agent, based on the SAC implementation shown below.
++# Might be possible to add what we did as a third_party extension in this way as
++# well.
++###################
++
++# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
++#
++# This source code is licensed under the MIT license found in the
++# LICENSE file in the root directory of this source tree.
++import numpy as np
++import torch
++
++# import mbrl.third_party.pytorch_sac as pytorch_sac
++# import mbrl.third_party.pytorch_sac.utils as pytorch_sac_utils
++
++from .core import Agent
++
++
++class DreamerAgent(Agent):
++    """A Soft-Actor Critic agent.
++
++    This class is a wrapper for
++    https://github.com/luisenp/pytorch_sac/blob/master/pytorch_sac/agent/sac.py
++
++
++    Args:
++        (pytorch_sac.SACAgent): the agent to wrap.
++    """
++
++    def __init__(self, world_model = None, actor_network = None, critic_network = None):
++        self.world_model = world_model
++        self.actor_network = actor_network
++        self.critic_network = critic_network
++
++    def act(
++        self, obs: np.ndarray, sample: bool = False, batched: bool = False, **_kwargs
++    ) -> np.ndarray:
++        """Issues an action given an observation.
++
++        Args:
++            obs (np.ndarray): the observation (or batch of observations) for which the action
++                is needed.
++            sample (bool): if ``True`` the agent samples actions from its policy, otherwise it
++                returns the mean policy value. Defaults to ``False``.
++            batched (bool): if ``True`` signals to the agent that the obs should be interpreted
++                as a batch.
++
++        Returns:
++            (np.ndarray): the action.
++        """
++        return self.actor_network(obs)
+diff --git a/mbrl/util/env.py b/mbrl/util/env.py
+index 862aba8..95c9bef 100644
+--- a/mbrl/util/env.py
++++ b/mbrl/util/env.py
+@@ -1,3 +1,9 @@
++###################
++##### FOR GLEN ####
++###################
++# So here we just added a fixed start point for the Duckietown environment. That
++# required modifying the Duckietown environment as well. 
++###################
+ # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+ #
+ # This source code is licensed under the MIT license found in the
+@@ -92,7 +98,14 @@ def _legacy_make_env(
+         # Use the duckietown environment with settings that 
+         # closely match the settings used for cheetah run
+         elif cfg.overrides.env == "duckietown_gym_env":
+-            env = mbrl.env.DuckietownEnv(domain_rand=False, camera_width=64, camera_height=64)
++            # env = mbrl.env.DuckietownEnv(domain_rand=False, camera_width=64, camera_height=64, set_start_pos=np.array([3.68356218, 0., 1.50287902]), set_start_angle=np.array([-1.564463624086557]))
++            env = mbrl.env.DuckietownEnv(
++                domain_rand=False,
++                camera_width=64,
++                camera_height=64,
++                set_start_pos=np.array([3.68680743, 0.0, 2.01533089]),
++                set_start_angle=np.array([-1.564463624086557])
++            )
+             term_fn = mbrl.env.termination_fns.no_termination
+             reward_fn = None 
+         else:
+diff --git a/requirements/ducky.txt b/requirements/ducky.txt
+index 1a66f35..8eb9f2a 100644
+--- a/requirements/ducky.txt
++++ b/requirements/ducky.txt
+@@ -21,4 +21,5 @@ termcolor==1.1.0
+ torch==1.10.1
+ torchvision==0.11.2
+ tqdm==4.62.3
++typing_extensions==4.1.1
+ wandb==0.12.9
+\ No newline at end of file
+diff --git a/sweep.py b/sweep.py
+new file mode 100644
+index 0000000..2f8ec70
+--- /dev/null
++++ b/sweep.py
+@@ -0,0 +1,30 @@
++###################
++##### FOR GLEN ####
++###################
++# This is just a script to run hyperparameter sweeps using weights and biases.
++###################
++
++import os
++import sys
++
++base_command = f"python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_duckietown algorithm.test_frequency=5 algorithm.num_episodes=15 overrides.sequence_length=80 overrides.batch_size=80"
++
++final_hydra_command = base_command
++
++for wandb_arg in sys.argv[1:]:
++    hydra_arg = wandb_arg[2:]
++    final_hydra_command += ' ' + f"{hydra_arg}"
++
++
++print(final_hydra_command)
++os.system(final_hydra_command)
++
++# Alternate base commands:
++
++# python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=planet_duckietown algorithm.test_frequency=2 algorithm.num_episodes=2 overrides.sequence_length=10 overrides.batch_size=10 overrides.model_learning_rate=1e-5
++
++# python -m mbrl.examples.main algorithm=dreamer dynamics_model=dreamer overrides=dreamer_cheetah_run algorithm.test_frequency=2 algorithm.num_episodes=15 overrides.sequence_length=80 overrides.batch_size=50
++
++# python -m mbrl.examples.main algorithm=planet dynamics_model=planet overrides=dreamer_duckietown algorithm.test_frequency=2 algorithm.num_episodes=2 overrides.sequence_length=10 overrides.batch_size=10 overrides.model_learning_rate=1e-4
++
++# python -m mbrl.examples.main algorithm=dreamer dynamics_model=dreamer overrides=dreamer_duckietown algorithm.test_frequency=2 algorithm.num_episodes=1500 overrides.sequence_length=80 overrides.batch_size=50
+
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+
+diff --git a/.gitignore b/.gitignore
+index 27a1f13..7d3c458 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -7,3 +7,5 @@ xvfb.log
+ bin
+ 
+ trained_models
++saved_runs
++wandb
+\ No newline at end of file
+diff --git a/.vscode/launch.json b/.vscode/launch.json
+new file mode 100644
+index 0000000..70aab4f
+--- /dev/null
++++ b/.vscode/launch.json
+@@ -0,0 +1,21 @@
++{
++    // Use IntelliSense to learn about possible attributes.
++    // Hover to view descriptions of existing attributes.
++    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
++    "version": "0.2.0",
++    "configurations": [
++        {
++            "name": "Manual Control",
++            "type": "python",
++            "request": "launch",
++            "python": "/home/kuwajerw/anaconda3/envs/dgym/bin/python",
++            "program": "manual_control.py",
++            "args": [
++                "--env-name",
++                "Duckietown-udem1-v0"
++            ],
++            "console": "integratedTerminal",
++            "justMyCode": true
++        }
++    ]
++}
+\ No newline at end of file
+diff --git a/gym_duckietown/simulator.py b/gym_duckietown/simulator.py
+index aea1e34..45ea989 100644
+--- a/gym_duckietown/simulator.py
++++ b/gym_duckietown/simulator.py
+@@ -1,12 +1,14 @@
+ # coding=utf-8
+ from __future__ import division
+ 
+-from collections import namedtuple
++from collections import namedtuple, deque
+ from ctypes import POINTER
+ from dataclasses import dataclass
+ from typing import Tuple
+ # import geometry
+ 
++# import wandb
++
+ @dataclass
+ class DoneRewardInfo:
+     done: bool
+@@ -158,6 +160,8 @@ class Simulator(gym.Env):
+             seed=None,
+             distortion=False,
+             randomize_maps_on_reset=False,
++            set_start_pos=None,
++            set_start_angle=None
+     ):
+         """
+ 
+@@ -305,6 +309,10 @@ class Simulator(gym.Env):
+             self.map_names = os.listdir('maps')
+             self.map_names = [mapfile.replace('.yaml', '') for mapfile in self.map_names]
+ 
++        
++        self.set_start_pos = set_start_pos
++        self.set_start_angle = set_start_angle
++        
+         # Initialize the state
+         self.reset()
+ 
+@@ -513,6 +521,19 @@ class Simulator(gym.Env):
+         self.cur_pos = propose_pos
+         self.cur_angle = propose_angle
+ 
++        if self.set_start_pos is not None:
++            self.cur_pos = self.set_start_pos
++        if self.set_start_angle is not None:
++            # self.cur_angle = self.set_start_angle
++            # v Dunno why I need to do this but ugh v
++            self.cur_angle = np.array([-1.56446362])
++            xyz = 5
++
++        self.cur_poses = deque(maxlen=10)
++        self.cur_angles = deque(maxlen=10)
++        self.cur_poses.append(self.cur_pos)
++        self.cur_angles.append(self.cur_angle)
++
+         logger.info('Starting at %s %s' % (self.cur_pos, self.cur_angle))
+ 
+         # Generate the first camera image
+@@ -1220,6 +1241,10 @@ class Simulator(gym.Env):
+                                                    self.wheel_dist,
+                                                    wheelVels=self.wheelVels,
+                                                    deltaTime=delta_time)
++
++        self.cur_poses.append(self.cur_pos)
++        self.cur_angles.append(self.cur_angle)
++
+         self.step_count += 1
+         self.timestamp += delta_time
+ 
+@@ -1324,10 +1349,15 @@ class Simulator(gym.Env):
+ 
+             # Compute the reward
+             reward = (
+-                    +1.0 * speed * lp.dot_dir +
++                    # +1.0 * speed * lp.dot_dir +
+                     -10 * np.abs(lp.dist) +
+                     +40 * col_penalty
+             )
++            # Ali's reward:
++            delta_pos = self.cur_pos - self.cur_poses[0]
++            distance_travelled = np.linalg.norm(delta_pos)
++            # wandb.log({"dist_traveled": distance_travelled})
++            reward += distance_travelled*50
+         return reward
+ 
+     def step(self, action: np.ndarray):
+diff --git a/learning/reinforcement/pytorch/ddpg.py b/learning/reinforcement/pytorch/ddpg.py
+index 965d938..c75db8c 100644
+--- a/learning/reinforcement/pytorch/ddpg.py
++++ b/learning/reinforcement/pytorch/ddpg.py
+@@ -67,7 +67,7 @@ class ActorCNN(nn.Module):
+         x = self.bn2(self.lr(self.conv2(x)))
+         x = self.bn3(self.lr(self.conv3(x)))
+         x = self.bn4(self.lr(self.conv4(x)))
+-        x = x.view(x.size(0), -1)  # flatten
++        x = x.reshape(x.size(0), -1)  # flatten
+         x = self.dropout(x)
+         x = self.lr(self.lin1(x))
+ 
+@@ -129,7 +129,7 @@ class CriticCNN(nn.Module):
+         x = self.bn2(self.lr(self.conv2(x)))
+         x = self.bn3(self.lr(self.conv3(x)))
+         x = self.bn4(self.lr(self.conv4(x)))
+-        x = x.view(x.size(0), -1)  # flatten
++        x = x.reshape(x.size(0), -1)  # flatten
+         x = self.lr(self.lin1(x))
+         x = self.lr(self.lin2(torch.cat([x, actions], 1)))  # c
+         x = self.lin3(x)
+diff --git a/learning/reinforcement/pytorch/enjoy_reinforcement.py b/learning/reinforcement/pytorch/enjoy_reinforcement.py
+index 464d54c..80e77d8 100644
+--- a/learning/reinforcement/pytorch/enjoy_reinforcement.py
++++ b/learning/reinforcement/pytorch/enjoy_reinforcement.py
+@@ -6,9 +6,9 @@ import os
+ import numpy as np
+ 
+ # Duckietown Specific
+-from reinforcement.pytorch.ddpg import DDPG
+-from utils.env import launch_env
+-from utils.wrappers import NormalizeWrapper, ImgWrapper, \
++from learning.reinforcement.pytorch.ddpg import DDPG
++from learning.utils.env import launch_env
++from learning.utils.wrappers import NormalizeWrapper, ImgWrapper, \
+     DtRewardWrapper, ActionWrapper, ResizeWrapper
+ 
+ 
+diff --git a/learning/reinforcement/pytorch/models/planet.pth/model.pth b/learning/reinforcement/pytorch/models/planet.pth/model.pth
+new file mode 100644
+index 0000000..094d4dc
+Binary files /dev/null and b/learning/reinforcement/pytorch/models/planet.pth/model.pth differ
+diff --git a/learning/reinforcement/pytorch/test_algo.py b/learning/reinforcement/pytorch/test_algo.py
+new file mode 100644
+index 0000000..2dbf4be
+--- /dev/null
++++ b/learning/reinforcement/pytorch/test_algo.py
+@@ -0,0 +1,193 @@
++###################
++##### FOR GLEN ####
++###################
++# This is just a script I used to help figure out how to record videos in
++# Duckietown, and also how to use a trained agent to pick actions in Duckietown.
++###################
++import ast
++import argparse
++import logging
++
++import os
++from tkinter import W
++import numpy as np
++
++from gym.wrappers import Monitor
++from gym.wrappers.monitoring.video_recorder import VideoRecorder
++
++# Duckietown Specific
++from learning.reinforcement.pytorch.ddpg import DDPG
++from learning.utils.env import launch_env
++from learning.utils.wrappers import NormalizeWrapper, ImgWrapper, \
++    DtRewardWrapper, ActionWrapper, ResizeWrapper
++
++import wandb
++import torch
++    
++import errno
++import os
++from datetime import datetime
++
++import hydra
++import omegaconf
++from learning.reinforcement.pytorch.utils import planet_config_dict
++
++cfg = omegaconf.OmegaConf.create(planet_config_dict)
++
++# ADD THE MBRL LIB TO PATH SO YOU CAN IMPORT IT 
++import sys
++sys.path.append('/home/kuwajerw/repos/duckietown-mbrl-lib')
++
++
++import mbrl.algorithms.planet as planet
++import mbrl.util.env
++import mbrl.constants
++from mbrl.env.termination_fns import no_termination
++from mbrl.models import ModelEnv, ModelTrainer
++from mbrl.planning import RandomAgent, create_trajectory_optim_agent_for_model
++
++# folder in which to save logs
++# will make timestamped folder in here
++base_logdir = 'saved_runs'
++
++# timestamp stuff
++base_day_str = datetime.now().strftime('%Y-%m-%d')
++base_time_str = datetime.now().strftime('%H-%M-%S')
++curr_timestamp_str = base_day_str + '_' + base_time_str
++
++# made this helper function to manually save the logs 
++# in addition to the W&B logs just in case
++def make_save_folder(label=''):
++
++    # make timestamp logdir path
++    base_path = os.getcwd() + f'/{base_logdir}/'
++    mydir = os.path.join(
++        base_path, 
++        base_day_str, base_time_str + "_" + label)
++
++    # actually create the folder
++    try:
++        os.makedirs(mydir)
++    except OSError as e:
++        if e.errno != errno.EEXIST:
++            raise  # This was not a "directory exist" error..
++    
++    return mydir + "/"
++
++
++def save_list(items, label, dest):
++    with open(os.path.join(dest, label), 'w') as f:
++        f.writelines(items)
++
++
++
++# curr_timestamp_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
++
++video_name = f"{curr_timestamp_str}.mp4"
++
++
++
++def _enjoy():          
++
++    # save run logs in folder that matches the wandb run name
++    logdir = make_save_folder(label=wandb.run.name)
++    
++    # Launch the env with our helper function
++    env = launch_env()
++    print("Initialized environment")
++
++    # Wrappers
++    env = ResizeWrapper(env)
++    env = NormalizeWrapper(env)
++    env = ImgWrapper(env) # to make the images from 160x120x3 into 3x160x120
++    env = ActionWrapper(env)
++    env = DtRewardWrapper(env)
++    env = Monitor(env, logdir, force=True)
++    print("Initialized Wrappers")
++    
++    # record video
++    video_rec = VideoRecorder(env, logdir + video_name)
++
++    state_dim = env.observation_space.shape
++    action_dim = env.action_space.shape[0]
++    max_action = float(env.action_space.high[0])
++    
++    # PLANET STUFF ##############################
++        
++    obs_shape = env.observation_space.shape
++    act_shape = env.action_space.shape
++    # Create PlaNet model
++    rng = torch.Generator(device=cfg.device)
++    rng.manual_seed(cfg.seed)
++    cfg.dynamics_model.action_size = env.action_space.shape[0]
++
++    planet = hydra.utils.instantiate(cfg.dynamics_model)
++    assert isinstance(planet, mbrl.models.PlaNetModel)
++    planet.load('learning/reinforcement/pytorch/models/planet.pth')
++    model_env = ModelEnv(env, planet, no_termination, generator=rng)
++    trainer = ModelTrainer(planet, optim_lr=1e-3, optim_eps=1e-4)
++    
++    agent = create_trajectory_optim_agent_for_model(model_env, cfg.algorithm.agent)
++    # PLANET STUFF ##############################
++
++    # Initialize policy
++    # policy = DDPG(state_dim, action_dim, max_action, net_type="cnn")
++    # policy.load(filename='ddpg', directory='learning/reinforcement/pytorch/models/')
++
++    obs = env.reset()
++    done = False
++    reward_list = []
++    action_list = []
++
++    # PLANET STUFF ##############################
++    agent.reset()
++    planet.reset_posterior()
++    action = None
++    # PLANET STUFF ##############################
++
++    # while True:
++    # while not done:
++    for step in range(100):
++        
++        # PLANET STUFF ##############################
++        planet.update_posterior(obs, action=action, rng=rng)
++        action_noise = 0
++        action = agent.act(obs) + action_noise
++        action = np.clip(action, -1.0, 1.0)  # to account for the noise
++        # PLANET STUFF ##############################
++
++        # action = policy.predict(np.array(obs))
++        # action = env.action_space.sample()
++        # Perform action
++        obs, reward, done, _ = env.step(action)
++
++        # log stuff with wandb
++        wandb.log({'step' : step})
++        wandb.log({'action0': action[0], 'action1' : action[1], 'global_step': step})
++        wandb.log({'reward' : reward, 'global_step': step})
++        wandb.log({'done' : int(done), 'global_step': step})
++
++        # env.render() # optional
++        video_rec.capture_frame() # record video
++
++        # maintain manual log just in case 
++        reward_list.append(str(reward) + '\n')
++        action_list.append(str(action) + '\n')
++        
++    
++    # cleanup here
++    # done = False
++    # obs = env.reset()
++    video_rec.close()
++    env.close()
++
++    # save manual log 
++    save_list(reward_list, f"rewards_{curr_timestamp_str}.txt", logdir)
++    save_list(action_list, f"actions_{curr_timestamp_str}.txt", logdir)
++    
++        
++
++if __name__ == '__main__':
++    wandb.init(project="MBRL_Duckyt", entity="mbrl_ducky", monitor_gym=True)
++    _enjoy()
++    
+diff --git a/learning/reinforcement/pytorch/train_reinforcement.py b/learning/reinforcement/pytorch/train_reinforcement.py
+index 05c797e..70c7cd5 100644
+--- a/learning/reinforcement/pytorch/train_reinforcement.py
++++ b/learning/reinforcement/pytorch/train_reinforcement.py
+@@ -6,10 +6,10 @@ import os
+ import numpy as np
+ 
+ # Duckietown Specific
+-from reinforcement.pytorch.ddpg import DDPG
+-from reinforcement.pytorch.utils import seed, evaluate_policy, ReplayBuffer
+-from utils.env import launch_env
+-from utils.wrappers import NormalizeWrapper, ImgWrapper, \
++from learning.reinforcement.pytorch.ddpg import DDPG
++from learning.reinforcement.pytorch.utils import seed, evaluate_policy, ReplayBuffer
++from learning.utils.env import launch_env
++from learning.utils.wrappers import NormalizeWrapper, ImgWrapper, \
+     DtRewardWrapper, ActionWrapper, ResizeWrapper
+ 
+ logger = logging.getLogger(__name__)
+@@ -138,6 +138,6 @@ if __name__ == '__main__':
+     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
+     parser.add_argument("--env_timesteps", default=500, type=int)  # Frequency of delayed policy updates
+     parser.add_argument("--replay_buffer_max_size", default=10000, type=int)  # Maximum number of steps to keep in the replay buffer
+-    parser.add_argument('--model-dir', type=str, default='reinforcement/pytorch/models/')
++    parser.add_argument('--model-dir', type=str, default='learning/reinforcement/pytorch/models/')
+ 
+     _train(parser.parse_args())
+diff --git a/manual_control.py b/manual_control.py
+index 6802fec..565e390 100755
+--- a/manual_control.py
++++ b/manual_control.py
+@@ -38,6 +38,8 @@ if args.env_name and args.env_name.find('Duckietown') != -1:
+         domain_rand = args.domain_rand,
+         frame_skip = args.frame_skip,
+         distortion = args.distortion,
++        set_start_pos=np.array([3.68356218, 0., 1.50287902]),
++        set_start_angle=np.array([-1.564463624086557])
+     )
+ else:
+     env = gym.make(args.env_name)
+@@ -98,6 +100,8 @@ def update(dt):
+ 
+     obs, reward, done, info = env.step(action)
+     print('step_count = %s, reward=%.3f' % (env.unwrapped.step_count, reward))
++    print(f"curr_pos is {env.cur_pos} and cur_angle is {env.cur_angle}")
++    
+ 
+     if key_handler[key.RETURN]:
+         from PIL import Image
