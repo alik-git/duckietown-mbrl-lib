@@ -121,7 +121,7 @@ In the paper, the authors run Dreamer on the DeepMind control suite, similar to 
 
 ### Model-Based Reinforcement Learning
 
-To setup the reinforcement learning problem from a model-based reinforcement learning (MBRL) perspective, we adhere to the Markov decision process formulation [MDP Bellman](https://apps.dtic.mil/sti/pdfs/AD0606367.pdf), where we use state $s \in \mathcal{S}$ and actions $a \in \mathcal{A}$ with reward function  $r(s,a)$ and the dynamics or transition function $f_\theta$, such that $s_{t+1} = f_{\theta}(s_t, a_t)$ for deterministic transitions, and stochastic transitions are given by the conditional $f_\theta(s_{t+1}\mid s_t, a_t) = \mathbb{P}(s_{t+1}\mid s_t, a_t, ; \theta)$ and learning the forward dynamics is akin to doing a fitting of approximation $\hat{f}$ to the real dynamics $f$ given real data from the system.
+To setup the reinforcement learning problem from a model-based reinforcement learning (MBRL) perspective, we adhere to the Markov decision process formulation [MDP Bellman](https://apps.dtic.mil/sti/pdfs/AD0606367.pdf), where we use state $$s \in \mathcal{S}$$ and actions $$a \in \mathcal{A}$$ with reward function $$r(s,a)$$ and the dynamics or transition function $$f_\theta$$, such that $$s_{t+1} = f_{\theta}(s_t, a_t)$$ for deterministic transitions, and stochastic transitions are given by the conditional $$f_\theta(s_{t+1}\mid s_t, a_t) = \mathbb{P}(s_{t+1}\mid s_t, a_t, ; \theta)$$ and learning the forward dynamics is akin to doing a fitting of approximation $$\hat{f}$$ to the real dynamics $$f$$ given real data from the system.
 
 ### PlaNet for Gym-Duckietown
 
