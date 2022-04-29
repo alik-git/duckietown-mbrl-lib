@@ -407,7 +407,7 @@ Trying to fit in real robot experiments was definitely too much as both Gym-Duck
     
 Both members worked on all the parts.
 
-Student Name: Ali focused more on infrastructure code for Gym-Duckietown and logging.
+Student Name: Ali focused more on infrastructure code for Gym-Duckietown (reward function tuning) and logging.
 
 Student Name: Paul focused more on the Dreamer implementation.
 
