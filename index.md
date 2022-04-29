@@ -186,6 +186,14 @@ The actor loss is the loss from the actor network, which is described in the fol
 
 $$\lambda-returns = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) + \lambda^{H-1}V_{N}^{H}(s_\tau)$$
 
+Such that the actor loss is (where gamma is a the discount factor):
+
+$$loss_{actor} = -\frac{1}{N}\sum \gamma * (\lambda-returns)$$
+
+and for the critic:
+
+$$loss_{critic} = $$
+
 
 ### Dreamer evaluation 
 
@@ -223,6 +231,12 @@ $$\lambda-returns = (1 - \lambda)\sum_{n=1}^{H-1}\lambda^{n-1}V_{N}^{n}(s_\tau) 
     should provide evidence that your method works and it has been coded up well. Provide
     evidence of this via your data and learning graphs. However, this should not be restricted
     to learning graphs.
+
+
+Dreamer Observation Loss 
+
+<iframe src="https://wandb.ai/mbrl_ducky/MBRL_Duckyt/reports/Shared-panel-22-04-28-20-04-12--VmlldzoxOTE2MTQy?highlightShare" style="border:none;height:500px;width:100%"> </iframe>
+
 
 
 ## Video Results 
